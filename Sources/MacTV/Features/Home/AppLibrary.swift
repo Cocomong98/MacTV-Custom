@@ -369,7 +369,7 @@ enum IconFinder {
     }
 
     /// Downloads an image and returns it as PNG, if it's a real image of a usable size.
-    private static func fetchImage(_ url: URL, minimumSide: Int = 0) async -> Data? {
+    static func fetchImage(_ url: URL, minimumSide: Int = 0) async -> Data? {
         guard let data = await fetch(url), let image = NSImage(data: data),
               let rep = image.representations.max(by: { $0.pixelsWide < $1.pixelsWide }),
               rep.pixelsWide >= minimumSide,

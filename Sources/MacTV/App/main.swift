@@ -246,6 +246,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         tv.startControllers()
         tv.topShelf.start()
         tv.ensureSteamHeroes()
+        Task { [weak tv] in
+            await Icons.fetchWebsiteIcons { tv?.objectWillChange.send() }
+        }
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(displaysSlept),
             name: NSWorkspace.screensDidSleepNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(macWoke),

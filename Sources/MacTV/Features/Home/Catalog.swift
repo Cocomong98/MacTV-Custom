@@ -18,6 +18,8 @@ struct Service: Identifiable, Hashable {
     let kind: Kind
     /// The service's square app icon, a file in Icons/ for built-in apps…
     var icon: String? = nil
+    /// A shortcut icon published by the service on its own site.
+    var websiteIcon: URL? = nil
     /// …or a file the user's app library saved, for apps they added.
     var iconFile: URL? = nil
     var accent = "#8E8E93"
@@ -96,10 +98,14 @@ enum Catalog {
         Service(id: "movies", name: "Movies", kind: .movies, accent: "#5E5CE6", deep: "#14133A"),
         Service(id: "iina", name: "IINA", kind: .app(bundleID: "com.colliderli.iina"),
                 icon: "iina.png"),
-        Service(id: "wavve", name: "웨이브", kind: .web(URL(string: "https://www.wavve.com/")!), reportsUsage: false),
-        Service(id: "watcha", name: "왓챠", kind: .web(URL(string: "https://watcha.com/")!), reportsUsage: false),
-        Service(id: "tving", name: "티빙", kind: .web(URL(string: "https://www.tving.com/")!), reportsUsage: false),
-        Service(id: "laftel", name: "라프텔", kind: .web(URL(string: "https://laftel.net/")!), reportsUsage: false),
+        Service(id: "wavve", name: "웨이브", kind: .web(URL(string: "https://www.wavve.com/")!),
+                websiteIcon: URL(string: "https://www.wavve.com/favicon.ico"), reportsUsage: false),
+        Service(id: "watcha", name: "왓챠", kind: .web(URL(string: "https://watcha.com/")!),
+                websiteIcon: URL(string: "https://watcha.com/favicon.ico"), reportsUsage: false),
+        Service(id: "tving", name: "티빙", kind: .web(URL(string: "https://www.tving.com/")!),
+                websiteIcon: URL(string: "https://www.tving.com/favicon.ico"), reportsUsage: false),
+        Service(id: "laftel", name: "라프텔", kind: .web(URL(string: "https://laftel.net/")!),
+                websiteIcon: URL(string: "https://static.laftel.net/favicon-152.png"), reportsUsage: false),
         Service(id: "add-app", name: "Add App", kind: .addApp),
         Service(id: "settings", name: "Settings", kind: .settings),
     ]
@@ -270,6 +276,32 @@ enum Icons {
     private static var images: [String: NSImage] = [:]
     private static var pngs: [String: Data] = [:]
 
+    private static func websiteIconFile(_ id: String) -> URL {
+        AppFolder.url.appendingPathComponent("Icons/website-\(id).png")
+    }
+
+    /// Load service-published site icons once and update the existing tiles as they arrive.
+    static func fetchWebsiteIcons(onChange: @MainActor () -> Void) async {
+        await withTaskGroup(of: (String, Data?).self) { group in
+            for service in Catalog.services {
+                guard let url = service.websiteIcon, image(for: service) == nil else { continue }
+                let id = service.id
+                group.addTask { (id, await IconFinder.fetchImage(url)) }
+            }
+            for await (id, data) in group {
+                guard let data, let image = NSImage(data: data) else { continue }
+                let file = websiteIconFile(id)
+                Log.app.attempt("Caching a service icon") {
+                    try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    try data.write(to: file, options: .atomic)
+                }
+                forget(id)
+                images[id] = image
+                onChange()
+            }
+        }
+    }
+
     static func image(for service: Service) -> NSImage? {
         if let cached = images[service.id] { return cached }
         var image: NSImage?
@@ -278,6 +310,8 @@ enum Icons {
         } else if let file = service.icon,
            let url = Bundle.main.url(forResource: file, withExtension: nil, subdirectory: "Icons") {
             image = decoded(url)
+        } else if service.websiteIcon != nil {
+            image = decoded(websiteIconFile(service.id))
         }
         images[service.id] = image
         return image
