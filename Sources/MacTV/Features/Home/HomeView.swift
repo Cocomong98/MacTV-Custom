@@ -114,14 +114,14 @@ struct HomeView: View {
     }
 }
 
-/// Slides the status row up off the screen while the grid, the volume or a controller banner has
+/// Slides the status row up off the screen while the grid or a controller banner has
 /// the corner. It slides rather than fading, so the glass never goes translucent.
 private struct ClearsCornerForNotices: ViewModifier {
     @ObservedObject var notices: Notices
     let inGrid: Bool
 
     func body(content: Content) -> some View {
-        content.offset(y: inGrid || notices.volume != nil || notices.controller != nil ? -200 : 0)
+        content.offset(y: inGrid || notices.controller != nil ? -200 : 0)
     }
 }
 

@@ -47,6 +47,37 @@ struct AudioOutputTests {
     }
 
     @Test
+    func remoteSpeakerRequiresTrustedPairingAndACurrentOutput() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let tv = TVController(library: AppLibrary(folder: folder))
+        let store = PairingStore(folder: folder)
+        let trusted = try store.issue(name: "Trusted", guest: false)
+        let guest = try store.issue(name: "Guest", guest: true)
+        let server = RemoteServer(token: "", onCommand: { _ in }, state: { tv.remoteState() }, icon: { _ in nil },
+                                  routes: { tv.handleAppsRequest($0) }, pairing: store)
+        func request(_ key: String?, body: String? = nil) -> HTTPResponse {
+            server.respond(to: HTTPRequest(method: body == nil ? "GET" : "POST", path: body == nil ? "/state" : "/audio/volume",
+                                           query: [:], headers: key.map { ["x-couch-key": $0] } ?? [:],
+                                           body: Data((body ?? "").utf8)))
+        }
+
+        let obsoleteID = UInt32.max
+        let body = #"{"id":\#(obsoleteID),"value":40}"#
+        #expect(request(nil, body: body).status == "401 Unauthorized")
+        #expect(request(guest, body: body).status == "403 Forbidden")
+        #expect(request(trusted, body: body).status == "409 Conflict")
+        #expect(request(trusted, body: #"{"id":true,"value":40}"#).status == "400 Bad Request")
+        #expect(request(trusted, body: #"{"id":1,"value":101}"#).status == "400 Bad Request")
+        #expect(request(trusted, body: #"{"id":1,"value":40.5}"#).status == "400 Bad Request")
+        let guestState = try #require(JSONSerialization.jsonObject(with: request(guest).body) as? [String: Any])
+        let trustedState = try #require(JSONSerialization.jsonObject(with: request(trusted).body) as? [String: Any])
+        #expect(guestState["speakerVolume"] == nil)
+        #expect(trustedState["speakerVolume"] != nil)
+    }
+
+    @Test
     func audioPickerNavigationAndSheetRouting() {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let folder = root.appendingPathComponent("work/tests/\(UUID().uuidString)")

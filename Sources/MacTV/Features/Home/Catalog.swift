@@ -30,6 +30,8 @@ struct Service: Identifiable, Hashable {
     var regions: Set<String>? = nil
     /// App Store search term when `name` is ambiguous (e.g. My5 → "Channel 5", CTV → "CTV+").
     var iconQuery: String? = nil
+    /// Whether the built-in service is included in upstream usage analytics.
+    var reportsUsage = true
 
     /// Installed, and streams in this Mac's region.
     var isAvailable: Bool {
@@ -94,6 +96,10 @@ enum Catalog {
         Service(id: "movies", name: "Movies", kind: .movies, accent: "#5E5CE6", deep: "#14133A"),
         Service(id: "iina", name: "IINA", kind: .app(bundleID: "com.colliderli.iina"),
                 icon: "iina.png"),
+        Service(id: "wavve", name: "웨이브", kind: .web(URL(string: "https://www.wavve.com/")!), reportsUsage: false),
+        Service(id: "watcha", name: "왓챠", kind: .web(URL(string: "https://watcha.com/")!), reportsUsage: false),
+        Service(id: "tving", name: "티빙", kind: .web(URL(string: "https://www.tving.com/")!), reportsUsage: false),
+        Service(id: "laftel", name: "라프텔", kind: .web(URL(string: "https://laftel.net/")!), reportsUsage: false),
         Service(id: "add-app", name: "Add App", kind: .addApp),
         Service(id: "settings", name: "Settings", kind: .settings),
     ]

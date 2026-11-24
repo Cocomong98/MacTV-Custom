@@ -107,11 +107,25 @@ async function settleOnHome(home, fetcher = fetch, go = url => location.replace(
   return true;
 }
 
+let remoteReachable = false;
+
 // Keep a reachable sleeping display distinct from an offline Mac.
 function online(ok, sleeping = false) {
+  const changed = remoteReachable !== ok;
+  remoteReachable = ok;
   $('.status').hidden = ok && !sleeping;
   // A Mac that's fully asleep is off the network; only its own keyboard, trackpad or lid wakes it.
   $('#status').textContent = !ok ? 'Can’t reach the Mac. If it’s asleep, wake it with its keyboard or lid.' : sleeping ? 'Screen asleep · controls wake it' : '';
+  if (changed && !ok) {
+    brightnessRevision++;
+    for (const row of brightnessRows.values()) {
+      enableBrightness(row, false);
+      displayBrightness(row, null);
+    }
+    showBrightnessMessage('Mac disconnected.');
+    renderSpeaker();
+    if (!displayChanging) updateDisplays({ displays: availableDisplays });
+  }
 }
 
 // A timed-out POST may already have reached the TV; never replay it automatically.
@@ -222,7 +236,9 @@ async function readState() {
     $('#keep-awake').checked = s.keepMacAwake;
     $('#lid-override').checked = s.lidOverride;
     $('#lid-status').textContent = s.lidStatus || '';
+    if (!speaker.saving) updateSpeaker(s.speakerVolume);
     if (!displayChanging) updateDisplays(s.displaySetup);
+    refreshBrightness();
     renderPlayerChoices(typeof s.websitePlayer === 'string' ? s.websitePlayer : 'embedded', s.braveInstalled === true, s.websitePlayers);
     const player = s.externalPlayer && s.externalPlayer.name === 'IINA' ? s.externalPlayer : null;
     $('#iina-controls').hidden = !player;
@@ -277,9 +293,230 @@ function updateDisplays(setup) {
   $('#display-value').textContent = selected ? selected.name : 'None';
   list.replaceChildren(...(availableDisplays.length
     ? availableDisplays.map(display => choiceRow(display.name, display.current ? 'Showing now' : '', display === selected,
-        displayChanging, () => chooseDisplay(display)))
+        displayChanging || !remoteReachable, () => chooseDisplay(display)))
     : [choiceRow('No displays available', '', false, true, () => {})]));
 }
+
+const brightnessRows = new Map();
+const brightnessPresets = [0, 25, 50, 75, 100];
+const brightnessHoldMs = 350;
+let brightnessReading = false, brightnessRevision = 0;
+
+function brightnessVisible() {
+  return key && $('#power-sheet').classList.contains('show') && !$('#page-display').hidden
+    && !document.body.classList.contains('guest');
+}
+
+function showBrightnessMessage(message) {
+  const note = $('#brightness-msg');
+  note.textContent = message;
+  note.hidden = !message;
+}
+
+function displayBrightness(row, value) {
+  row.input.value = value ?? 0;
+  row.amount.textContent = value === null ? '—' : `${value}%`;
+  row.presets.forEach((button, i) => button.setAttribute('aria-pressed', String(brightnessPresets[i] === value)));
+}
+
+function enableBrightness(row, enabled) {
+  row.input.disabled = !enabled;
+  row.presets.forEach(button => { button.disabled = !enabled; });
+  if (!enabled) row.cancelGesture();
+}
+
+async function refreshBrightness() {
+  if (!remoteReachable || !brightnessVisible() || brightnessReading) return;
+  brightnessReading = true;
+  const revision = brightnessRevision;
+  try {
+    const displays = await api('/display/brightness');
+    if (revision !== brightnessRevision || !brightnessVisible()) return;
+    const current = new Set(displays.map(display => display.id));
+    for (const [id, row] of brightnessRows) {
+      if (current.has(id)) continue;
+      row.cancelGesture();
+      row.element.remove();
+      brightnessRows.delete(id);
+    }
+    for (const display of displays) {
+      const row = brightnessRows.get(display.id) || addBrightnessRow(display.id);
+      if (!row.gesture && !row.saving) {
+        const title = display.method === 'betterDisplay' ? `${display.name} (BetterDisplay)` : display.name;
+        row.name.textContent = title;
+        row.method = display.method;
+        row.input.setAttribute('aria-label', `${title} brightness`);
+        row.presetGroup.setAttribute('aria-label', `${title} brightness presets`);
+        row.value = Number.isInteger(display.value) ? display.value : null;
+        displayBrightness(row, row.value);
+        enableBrightness(row, display.pending !== true && !!row.method && row.value !== null);
+      }
+      row.note.textContent = display.error || (display.pending ? 'Checking brightness…' : '');
+      row.note.hidden = !row.note.textContent;
+    }
+    if (!displays.length) showBrightnessMessage('No displays available.');
+    else if (['No displays available.', 'Could not read display brightness.', 'Mac disconnected.'].includes($('#brightness-msg').textContent)) showBrightnessMessage('');
+  } catch (error) {
+    if (revision !== brightnessRevision || error.message === 'unpaired') return;
+    for (const row of brightnessRows.values()) enableBrightness(row, false);
+    showBrightnessMessage('Could not read display brightness.');
+  } finally {
+    brightnessReading = false;
+  }
+}
+
+function addBrightnessRow(id) {
+  const element = document.createElement('div'); element.className = 'row brightness-row';
+  const name = document.createElement('span'), amount = document.createElement('output');
+  const track = document.createElement('div'); track.className = 'brightness-track';
+  const input = document.createElement('input'); input.type = 'range'; input.min = '0'; input.max = '100'; input.step = '1';
+  input.setAttribute('aria-describedby', 'brightness-help');
+  track.appendChild(input);
+  const presetGroup = document.createElement('div'); presetGroup.className = 'brightness-presets';
+  presetGroup.setAttribute('role', 'group');
+  const presets = brightnessPresets.map(value => {
+    const button = document.createElement('button'); button.type = 'button'; button.textContent = `${value}%`;
+    button.addEventListener('click', () => saveBrightness(row, value));
+    presetGroup.appendChild(button);
+    return button;
+  });
+  const note = document.createElement('small'); note.hidden = true;
+  element.append(name, amount, track, presetGroup, note);
+  $('#display-brightness').appendChild(element);
+  const row = { id, element, name, amount, input, note, presets, presetGroup, gesture: null, saving: false, value: null };
+  brightnessRows.set(id, row);
+  input.addEventListener('input', () => displayBrightness(row, Number(input.value)));
+  input.addEventListener('change', () => saveBrightness(row, Number(input.value)));
+  row.cancelGesture = bindBrightnessTrack(track, row);
+  return row;
+}
+
+function bindBrightnessTrack(track, row) {
+  const at = event => {
+    const { left, width } = track.getBoundingClientRect();
+    return Math.round(Math.max(0, Math.min(1, (event.clientX - left) / width)) * 100);
+  };
+  function cancel() {
+    if (!row.gesture) return;
+    const { id, timer } = row.gesture;
+    row.gesture = null;
+    clearTimeout(timer);
+    track.classList.remove('precise');
+    if (track.hasPointerCapture(id)) track.releasePointerCapture(id);
+    displayBrightness(row, row.value);
+  }
+  track.addEventListener('contextmenu', event => event.preventDefault());
+  track.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || !event.isPrimary || row.input.disabled || row.gesture) return;
+    track.setPointerCapture(event.pointerId);
+    const gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, precise: false, moved: false };
+    gesture.timer = setTimeout(() => {
+      gesture.precise = true;
+      track.classList.add('precise');
+    }, brightnessHoldMs);
+    row.gesture = gesture;
+  });
+  track.addEventListener('pointermove', event => {
+    const gesture = row.gesture;
+    if (gesture?.id !== event.pointerId) return;
+    const distance = Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y);
+    if (!gesture.precise && distance > 9) { cancel(); return; }
+    if (gesture.precise && (gesture.moved || distance > 4)) {
+      gesture.moved = true;
+      displayBrightness(row, at(event));
+    }
+  });
+  track.addEventListener('pointerup', event => {
+    const gesture = row.gesture;
+    if (gesture?.id !== event.pointerId) return;
+    const value = at(event);
+    cancel();
+    if (!gesture.precise) saveBrightness(row, Math.round(value / 25) * 25);
+    else if (gesture.moved) saveBrightness(row, value);
+  });
+  for (const type of ['pointercancel', 'lostpointercapture']) {
+    track.addEventListener(type, event => { if (row.gesture?.id === event.pointerId) cancel(); });
+  }
+  return cancel;
+}
+
+async function saveBrightness(row, value) {
+  if (!remoteReachable || row.saving || row.input.disabled || !brightnessVisible() || value === row.value) return;
+  row.saving = true;
+  enableBrightness(row, false);
+  displayBrightness(row, value);
+  brightnessRevision++;
+  showBrightnessMessage('');
+  try {
+    const result = await api('/display/brightness', { id: row.id, value, method: row.method });
+    if (!remoteReachable || !brightnessVisible()) return;
+    if (result.pending) {
+      row.note.textContent = 'Applying brightness…';
+      row.note.hidden = false;
+    } else {
+      row.value = result.value;
+      displayBrightness(row, row.value);
+      enableBrightness(row, true);
+    }
+  } catch (error) {
+    displayBrightness(row, remoteReachable ? row.value : null);
+    if (error.message !== 'unpaired') showBrightnessMessage(error.message);
+  } finally {
+    row.saving = false;
+    refreshBrightness();
+  }
+}
+
+const speaker = { reported: null, editingID: null, saving: false, error: '' };
+const speakerSlider = $('#speaker-range');
+
+function updateSpeaker(reported) {
+  if (speaker.reported?.id !== reported?.id) speaker.error = '';
+  speaker.reported = reported;
+  renderSpeaker();
+}
+
+function renderSpeaker() {
+  const { id, name, value, muted, error } = speaker.reported || {};
+  $('#speaker-name').textContent = name || 'Built-in speakers';
+  const available = remoteReachable && Number.isInteger(id) && Number.isInteger(value);
+  speakerSlider.disabled = !available || speaker.saving;
+  if (!speaker.saving && !(available && speaker.editingID === id)) {
+    speakerSlider.value = available ? value : 0;
+    $('#speaker-value').textContent = !available ? '—' : muted ? 'Muted' : `${value}%`;
+  }
+  const message = $('#speaker-msg');
+  message.textContent = !remoteReachable ? 'Mac disconnected.' : error || speaker.error ||
+    (speaker.saving ? 'Applying volume…' : available ? '' : 'Speaker volume unavailable.');
+  message.hidden = !message.textContent;
+}
+
+speakerSlider.addEventListener('input', () => {
+  speaker.editingID ??= speaker.reported?.id;
+  $('#speaker-value').textContent = `${speakerSlider.value}%`;
+});
+speakerSlider.addEventListener('pointercancel', () => { speaker.editingID = null; renderSpeaker(); });
+speakerSlider.addEventListener('blur', () => { speaker.editingID = null; renderSpeaker(); });
+speakerSlider.addEventListener('change', async () => {
+  const id = speaker.editingID ?? speaker.reported?.id;
+  speaker.editingID = null;
+  if (speakerSlider.disabled || !brightnessVisible() || id !== speaker.reported?.id) { renderSpeaker(); return; }
+  const value = Number(speakerSlider.value);
+  speaker.saving = true;
+  speaker.error = '';
+  stateGeneration++;
+  renderSpeaker();
+  try {
+    const confirmed = await api('/audio/volume', { id, value });
+    speaker.reported = { ...speaker.reported, ...confirmed };
+  } catch (error) {
+    if (error.message !== 'unpaired') speaker.error = error.message;
+  } finally {
+    speaker.saving = false;
+    renderSpeaker();
+    await refresh(true);
+  }
+});
 
 // The browsers on this Mac, as the Mac lists them; an older Mac TV sends no list, so offer Built-in and Brave.
 function renderPlayerChoices(current, braveInstalled, players) {
@@ -842,6 +1079,7 @@ $('#open-power').onclick = () => { haptic('tick'); resetSleep(); showPage('setti
 function showPage(id) {
   document.querySelectorAll('#power-sheet .page').forEach(page => { page.hidden = page.id !== id; });
   $('#power-sheet .sheet').scrollTop = 0;
+  if (id === 'page-display') refreshBrightness();
 }
 document.querySelectorAll('#power-sheet [data-page]').forEach(row => row.onclick = () => { haptic('tick'); showPage(row.dataset.page); });
 document.querySelectorAll('#power-sheet [data-back]').forEach(back => back.onclick = () => { haptic('tick'); showPage('settings-main'); });
@@ -851,7 +1089,7 @@ document.querySelectorAll('#sleep-chips button').forEach(b => b.onclick = () => 
   showSleep(m);
 });
 async function chooseDisplay(display) {
-  if (displayChanging) return;
+  if (displayChanging || !remoteReachable) return;
   const note = $('#display-msg');
   displayChanging = true;
   note.hidden = true;
@@ -1051,5 +1289,8 @@ if (initialCode) {
   if (/^\d{6}$/.test(key)) { key = ''; store.set(''); }
   pair(initialCode, 'Phone').catch(() => { $('#code').value = ''; showPair(); });
 } else { refresh(); }
-setInterval(() => { if (document.visibilityState === 'visible') refresh(); }, 3000);
+setInterval(() => {
+  if (document.visibilityState !== 'visible') return;
+  refresh();
+}, 3000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });

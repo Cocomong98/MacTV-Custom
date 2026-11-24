@@ -466,13 +466,7 @@ final class TVController: NSObject, ObservableObject {
     func open(_ service: Service) {
         playbackCoordinator.closeIINAPlayback()
         playbackCoordinator.closeExternalBrowser()
-        var opened = ["app": analyticsAppName(service)]
-        if case .web = service.kind {
-            // A fixed word for other browsers: bundle ids aren't sent.
-            let choice = browserPreferences.choice(for: profile.id)
-            if case .app = choice { opened["player"] = "other" } else { opened["player"] = choice.rawValue }
-        }
-        Analytics.send(.appOpened, opened)
+        reportAppOpened(service)
         playbackCoordinator.resetPlaybackRequest()
         sheets.closeDismissible()
         switch service.kind {
@@ -619,7 +613,15 @@ final class TVController: NSObject, ObservableObject {
         }
     }
 
-    func showVolume(_ level: VolumeLevel) { notices.showVolume(level) }
+    func showVolume(_ level: VolumeLevel) {
+        let screen: NSScreen?
+        if playbackCoordinator.iinaOpen || playbackCoordinator.externalBrowser != nil {
+            screen = playbackCoordinator.externalWindowScreen ?? playbackScreen
+        } else {
+            screen = window?.screen ?? playbackScreen ?? NSScreen.main
+        }
+        if let screen { displayCoordinator.levelOSD.show(.volume(level), on: screen.displayID) }
+    }
 
     func startControllers() {
         controllerInput = ControllerInput(tv: self)

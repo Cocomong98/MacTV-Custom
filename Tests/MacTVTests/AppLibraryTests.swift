@@ -31,6 +31,40 @@ struct AppLibraryTests {
     }
 
     @Test
+    func testDomesticStreamingDefaultsPreserveSavedHome() throws {
+        try withFolder { folder in
+            let saved = #"{"added":[{"id":"user-legacy","name":"Legacy","url":"https://example.com"}],"hidden":["netflix"],"order":["user-legacy","youtube"],"pinned":["youtube"]}"#
+            let file = folder.appendingPathComponent("apps.json")
+            try Data(saved.utf8).write(to: file)
+            let library = AppLibrary(folder: folder)
+            let tv = TVController(library: library)
+            let expected = [
+                ("wavve", "웨이브", "https://www.wavve.com/"),
+                ("watcha", "왓챠", "https://watcha.com/"),
+                ("tving", "티빙", "https://www.tving.com/"),
+                ("laftel", "라프텔", "https://laftel.net/"),
+            ]
+            let ids = Set(expected.map { $0.0 })
+            let services = library.services()
+            #expect(services.filter { ids.contains($0.id) }.map(\.id) == expected.map { $0.0 })
+            #expect(services.prefix(2).map(\.id) == ["youtube", "user-legacy"])
+            #expect(library.isHidden("netflix"))
+            #expect(library.isPinned("youtube"))
+            #expect(tv.setupChoices.filter { ids.contains($0.id) }.count == expected.count)
+            let reported = tv.analyticsContext["builtInApps"]?.split(separator: ",").map(String.init) ?? []
+            for (id, name, address) in expected {
+                let service = try #require(services.first { $0.id == id })
+                let url = try #require(URL(string: address))
+                #expect(service.name == name)
+                #expect(service.kind == .web(url))
+                #expect(!service.reportsUsage)
+                #expect(!reported.contains(id))
+            }
+            #expect(try Data(contentsOf: file) == Data(saved.utf8))
+        }
+    }
+
+    @Test
     func testPinsAndOrderSurviveReloadAndNewAppAppendsUnpinned() throws {
         try withFolder { folder in
             let library = AppLibrary(folder: folder)

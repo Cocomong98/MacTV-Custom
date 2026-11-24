@@ -9,3 +9,14 @@ work/
 # Xcode / SwiftPM
 .swiftpm/
 *.xcodeproj/xcuserdata/
+
+# MacTV-Custom
+/DerivedData/
+**/xcuserdata/
+*.xcuserstate
+/node_modules/
+*.log
+.env
+.env.*
+!.env.example
+/local-test-data/

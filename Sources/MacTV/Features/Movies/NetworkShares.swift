@@ -243,7 +243,13 @@ enum ShareKeychain {
     private static let label = "Mac TV network share"
 
     private static func query(host: String, user: String) -> [String: Any] {
-        [kSecClass as String: kSecClassInternetPassword,
+        if LocalBuild.isCustom {
+            // Internet passwords are keyed by server and account, regardless of the display label.
+            return [kSecClass as String: kSecClassGenericPassword,
+                    kSecAttrService as String: "\(LocalBuild.name) network share",
+                    kSecAttrAccount as String: "\(host.utf8.count):\(host)\(user)"]
+        }
+        return [kSecClass as String: kSecClassInternetPassword,
          kSecAttrServer as String: host,
          kSecAttrAccount as String: user,
          kSecAttrProtocol as String: kSecAttrProtocolSMB,

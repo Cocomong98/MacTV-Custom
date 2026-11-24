@@ -2,16 +2,16 @@
 
 ## Supported versions
 
-Only the latest release gets fixes. Update from [Releases](https://github.com/Arunprakaash/mac-tv/releases/latest) before reporting.
+Check the latest [MacTV Custom release](https://github.com/Cocomong98/MacTV-Custom/releases/latest) before reporting.
 
 ## Reporting a problem
 
 Please don't open a public issue for a security problem. Report it privately instead:
 
-- On GitHub: the repository's **Security** tab › **Report a vulnerability**.
-- Or message me on [LinkedIn](https://www.linkedin.com/in/Arunprakaash).
+- Use the [private vulnerability report](https://github.com/Cocomong98/MacTV-Custom/security/advisories/new) for MacTV Custom.
+- Use [upstream's reporting instructions](https://github.com/Arunprakaash/mac-tv/blob/main/SECURITY.md) for issues reproduced in the original Mac TV.
 
-Say what you found, how to reproduce it, and which version you were running. I'll reply within a week, and credit you in the release notes when it's fixed unless you'd rather not be named.
+Include the affected version and the steps used to reproduce the problem. Keep QR codes, pairing keys and account details out of the report.
 
 ## What's in scope
 

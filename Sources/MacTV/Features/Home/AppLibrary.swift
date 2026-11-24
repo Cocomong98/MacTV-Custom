@@ -10,6 +10,13 @@ enum AppFolder {
             return folder
         }
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        if LocalBuild.isCustom {
+            let folder = support.appendingPathComponent(LocalBuild.name, isDirectory: true)
+            Log.app.attempt("Creating the custom app data folder") {
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            }
+            return folder
+        }
         let folder = support.appendingPathComponent("Mac TV", isDirectory: true)
         let earlier = support.appendingPathComponent("Matinee", isDirectory: true)
         if !FileManager.default.fileExists(atPath: folder.path), FileManager.default.fileExists(atPath: earlier.path) {

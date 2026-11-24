@@ -94,7 +94,9 @@ extension TVController {
     /// Anonymous context for the Launched event: settings and counts, never names or what's watched.
     var analyticsContext: [String: String] {
         let builtIn = Set(Catalog.services.map(\.id))
-        let onHome = services.filter { builtIn.contains($0.id) && $0.kind != .settings && $0.kind != .addApp }.map(\.id)
+        let onHome = services.filter {
+            $0.reportsUsage && builtIn.contains($0.id) && $0.kind != .settings && $0.kind != .addApp
+        }.map(\.id)
         let added = services.filter { !builtIn.contains($0.id) }
         return [
             "builtInApps": onHome.sorted().joined(separator: ","),
@@ -115,8 +117,19 @@ extension TVController {
         ]
     }
 
+    func reportAppOpened(_ service: Service) {
+        guard service.reportsUsage else { return }
+        var opened = ["app": analyticsAppName(service)]
+        if case .web(let url) = service.kind {
+            // A fixed word for other browsers: bundle ids aren't sent.
+            let choice = playbackCoordinator.websitePlayer(for: service, url: url)
+            if case .app = choice { opened["player"] = "other" } else { opened["player"] = choice.rawValue }
+        }
+        Analytics.send(.appOpened, opened)
+    }
+
     /// Which app was opened: a built-in app's name (Netflix, YouTube…), otherwise only its kind.
-    func analyticsAppName(_ service: Service) -> String {
+    private func analyticsAppName(_ service: Service) -> String {
         if Catalog.services.contains(where: { $0.id == service.id }) { return service.id }
         switch service.kind {
         case .web: return "added-website"

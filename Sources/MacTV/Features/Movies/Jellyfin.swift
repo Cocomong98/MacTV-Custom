@@ -444,7 +444,7 @@ final class JellyfinServers: ObservableObject {
 enum JellyfinKeychain {
     private static func query(server: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
-         kSecAttrService as String: "Mac TV Jellyfin",
+         kSecAttrService as String: LocalBuild.isCustom ? "\(LocalBuild.name) Jellyfin" : "Mac TV Jellyfin",
          kSecAttrAccount as String: server]
     }
 
@@ -452,7 +452,7 @@ enum JellyfinKeychain {
         SecItemDelete(query(server: server) as CFDictionary)
         var item = query(server: server)
         item[kSecValueData as String] = Data(token.utf8)
-        item[kSecAttrLabel as String] = "Mac TV Jellyfin sign-in"
+        item[kSecAttrLabel as String] = LocalBuild.isCustom ? "\(LocalBuild.name) Jellyfin sign-in" : "Mac TV Jellyfin sign-in"
         SecItemAdd(item as CFDictionary, nil)
     }
 

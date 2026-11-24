@@ -116,6 +116,26 @@ final class AudioCoordinator: ObservableObject {
         tv?.showVolume(currentVolume)
     }
 
+    func remoteSpeakerState() -> [String: Any] {
+        guard let device = currentDevice else { return ["error": "No audio output available."] }
+        guard device.transport == kAudioDeviceTransportTypeBuiltIn else {
+            return ["name": device.name, "error": "Switch the Mac’s sound output to its built-in speakers to use this slider."]
+        }
+        guard let volume = SystemControl.speakerVolume(on: device.id), let level = volume.level else {
+            return ["name": device.name, "error": "Speaker volume is unavailable."]
+        }
+        return ["id": device.id, "name": device.name, "value": level, "muted": volume.muted]
+    }
+
+    func setRemoteSpeakerVolume(_ level: Int, deviceID: AudioDeviceID) -> VolumeLevel? {
+        guard let device = currentDevice,
+              device.id == deviceID, device.transport == kAudioDeviceTransportTypeBuiltIn,
+              let volume = SystemControl.setSpeakerVolume(to: level, on: deviceID) else { return nil }
+        currentVolume = volume
+        tv?.showVolume(volume)
+        return volume
+    }
+
     /// A drag sets the volume only when the level changes.
     func dragVolume(to level: Int) {
         guard level != currentVolume.level || currentVolume.muted else { return }

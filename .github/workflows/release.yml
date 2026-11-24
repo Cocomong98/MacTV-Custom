@@ -1,0 +1,49 @@
+name: Publish macOS DMG
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate release commit and version
+        shell: bash
+        run: |
+          version=$(cat VERSION)
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          [[ "$GITHUB_REF_NAME" == "v$version" ]]
+          git merge-base --is-ancestor HEAD refs/remotes/origin/release
+          awk -v heading="## $version" '
+            $0 == heading { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/mactv-release-notes.md"
+          grep -q '[^[:space:]]' "$RUNNER_TEMP/mactv-release-notes.md"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test
+        run: bash scripts/test-custom.sh
+      - name: Build and verify DMG
+        run: bash scripts/make-custom-dmg.sh
+      - name: Publish to GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          version=$(cat VERSION)
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "MacTV Custom $version" \
+            --notes-file "$RUNNER_TEMP/mactv-release-notes.md" \
+            "build/MacTV-Custom-$version.dmg" "build/MacTV-Custom-$version.dmg.sha256"

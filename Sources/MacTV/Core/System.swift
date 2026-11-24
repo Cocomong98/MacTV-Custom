@@ -37,6 +37,19 @@ enum SystemControl {
         return VolumeLevel(level: OutputVolume.level(device), muted: OutputVolume.muted(device) ?? false)
     }
 
+    static func speakerVolume(on device: AudioDeviceID) -> VolumeLevel? {
+        guard OutputVolume.device == device, OutputVolume.isInternalSpeaker(device),
+              let level = OutputVolume.level(device) else { return nil }
+        return VolumeLevel(level: level, muted: OutputVolume.muted(device) ?? false)
+    }
+
+    /// A remote slider refers to a particular output. Never apply a stale value to a new output.
+    static func setSpeakerVolume(to level: Int, on device: AudioDeviceID) -> VolumeLevel? {
+        guard speakerVolume(on: device) != nil, OutputVolume.setLevel(device, level) else { return nil }
+        OutputVolume.setMuted(device, false)
+        return speakerVolume(on: device)
+    }
+
     /// Turns the displays off; playback and the remote keep working.
     static func displayOff() { pmset("displaysleepnow") }
 
@@ -77,6 +90,23 @@ private enum OutputVolume {
         return status == noErr && id != kAudioObjectUnknown ? id : nil
     }
 
+    static func isInternalSpeaker(_ device: AudioObjectID) -> Bool {
+        var address = output(kAudioDevicePropertyDataSource)
+        var source: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        if AudioObjectGetPropertyData(device, &address, 0, nil, &size, &source) == noErr {
+            return source == 0x6973706b // 'ispk', the internal speaker port
+        }
+        // Some Apple devices expose a separate speaker endpoint without a source selector.
+        address = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceUID,
+                                             mScope: kAudioObjectPropertyScopeGlobal,
+                                             mElement: kAudioObjectPropertyElementMain)
+        var uid: Unmanaged<CFString>?
+        size = UInt32(MemoryLayout.size(ofValue: uid))
+        guard AudioObjectGetPropertyData(device, &address, 0, nil, &size, &uid) == noErr else { return false }
+        return (uid?.takeRetainedValue() as String?) == "BuiltInSpeakerDevice"
+    }
+
     /// 0–100, or nil when the output has no volume the Mac can set.
     static func level(_ device: AudioObjectID) -> Int? {
         var address = output(kAudioHardwareServiceDeviceProperty_VirtualMainVolume)
@@ -89,11 +119,13 @@ private enum OutputVolume {
         return Int((value * 100).rounded())
     }
 
-    static func setLevel(_ device: AudioObjectID, _ level: Int) {
+    @discardableResult
+    static func setLevel(_ device: AudioObjectID, _ level: Int) -> Bool {
         var address = output(kAudioHardwareServiceDeviceProperty_VirtualMainVolume)
         var value = Float32(max(0, min(100, level))) / 100
         let status = AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &value)
         if status != noErr { Log.audio.error("Couldn't set the volume: \(status, privacy: .public)") }
+        return status == noErr
     }
 
     static func muted(_ device: AudioObjectID) -> Bool? {

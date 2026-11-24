@@ -78,10 +78,7 @@ final class TVMode {
     var loginEnabled: Bool { loginStatus == .enabled || loginStatus == .requiresApproval }
 
     private func id(_ screen: NSScreen) -> String {
-        guard let uuid = CGDisplayCreateUUIDFromDisplayID(screen.displayID)?.takeRetainedValue() else {
-            return "display-\(screen.displayID)"
-        }
-        return CFUUIDCreateString(nil, uuid) as String
+        DisplayBrightness.uuid(for: screen.displayID) ?? "display-\(screen.displayID)"
     }
 
     struct DisplayOption: Equatable {

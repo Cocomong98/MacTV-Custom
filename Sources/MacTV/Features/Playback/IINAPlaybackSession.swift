@@ -23,11 +23,27 @@ final class IINAPlaybackSession {
     /// Called on the main actor if an asynchronously queued command fails.
     var onError: (@MainActor (Error) -> Void)?
     var onReady: (@MainActor () -> Void)?
+    var onVolume: (@MainActor (VolumeLevel) -> Void)?
     private var process: Process?
     var isRunning: Bool { !closed && process?.isRunning == true }
     var application: NSRunningApplication? {
         guard isRunning, let process else { return nil }
         return NSRunningApplication(processIdentifier: process.processIdentifier)
+    }
+
+    var windowScreen: NSScreen? {
+        guard let application else { return nil }
+        let app = AXUIElementCreateApplication(application.processIdentifier)
+        var windowsValue: CFTypeRef?, position: CFTypeRef?, size: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &windowsValue) == .success,
+              let windows = windowsValue as? [AXUIElement], windows.count == 1, let window = windows.first,
+              AXUIElementCopyAttributeValue(window, kAXPositionAttribute as CFString, &position) == .success,
+              AXUIElementCopyAttributeValue(window, kAXSizeAttribute as CFString, &size) == .success,
+              let position, let size, CFGetTypeID(position) == AXValueGetTypeID(), CFGetTypeID(size) == AXValueGetTypeID() else { return nil }
+        var origin = CGPoint.zero, dimensions = CGSize.zero
+        guard AXValueGetValue(position as! AXValue, .cgPoint, &origin),
+              AXValueGetValue(size as! AXValue, .cgSize, &dimensions) else { return nil }
+        return NSScreen.overlappingQuartzBounds(CGRect(origin: origin, size: dimensions))
     }
     private final class Cancellation: @unchecked Sendable {
         private let lock = NSLock()
@@ -207,7 +223,10 @@ final class IINAPlaybackSession {
             onError?(PlaybackError.control("Too many remote commands are pending."))
             return true
         }
-        enqueue(action)
+        switch command {
+        case .volume, .mute, .move(.up), .move(.down): enqueue(action, reportVolume: true)
+        default: enqueue(action)
+        }
         return true
     }
 
@@ -228,7 +247,8 @@ final class IINAPlaybackSession {
         enqueue(["stop"], cleanup: true)
     }
 
-    private func enqueue(_ command: [Any], cleanup: Bool = false, verifyScreen: CGDirectDisplayID? = nil) {
+    private func enqueue(_ command: [Any], cleanup: Bool = false, verifyScreen: CGDirectDisplayID? = nil,
+                         reportVolume: Bool = false) {
         let path = socketPath, folder = directory, cancellation = self.cancellation
         let ownedProcess = cleanup ? process : nil
         let deadline = cleanup ? Date().addingTimeInterval(6) : (startupDeadline ?? Date().addingTimeInterval(6))
@@ -249,6 +269,13 @@ final class IINAPlaybackSession {
                 if let verifyScreen, !cancellation.isCancelled {
                     Task { @MainActor [weak self] in await self?.verifyFullscreen(on: verifyScreen) }
                 }
+                if reportVolume, !cancellation.isCancelled,
+                   let volume = try? Self.readVolume(path: path, cancellation: cancellation, deadline: deadline) {
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self, !self.closed else { return }
+                        self.onVolume?(volume)
+                    }
+                }
             } catch {
                 if !cleanup && !cancellation.isCancelled {
                     Task { @MainActor [weak self] in self?.onError?(error) }
@@ -261,7 +288,15 @@ final class IINAPlaybackSession {
         try send(command, path: path, cancellation: nil, deadline: Date().addingTimeInterval(6))
     }
 
-    private nonisolated static func send(_ command: [Any], path: String, cancellation: Cancellation?, deadline: Date) throws {
+    private nonisolated static func readVolume(path: String, cancellation: Cancellation, deadline: Date) throws -> VolumeLevel? {
+        let level = try send(["get_property", "volume"], path: path, cancellation: cancellation, deadline: deadline)
+        let muted = try send(["get_property", "mute"], path: path, cancellation: cancellation, deadline: deadline)
+        guard let level = level as? Double, (0...1000).contains(level), let muted = muted as? Bool else { return nil }
+        return VolumeLevel(level: Int(level.rounded()), muted: muted)
+    }
+
+    @discardableResult
+    private nonisolated static func send(_ command: [Any], path: String, cancellation: Cancellation?, deadline: Date) throws -> Any? {
         let payload = try JSONSerialization.data(withJSONObject: ["command": command]) + Data([10])
         var address = sockaddr_un()
         address.sun_family = sa_family_t(AF_UNIX)
@@ -314,7 +349,7 @@ final class IINAPlaybackSession {
                 guard let object = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
                       let status = object["error"] as? String else { continue }
                 guard status == "success" else { throw PlaybackError.control(status) }
-                return
+                return object["data"]
             }
         }
         throw PlaybackError.control("The player sent an invalid response.")

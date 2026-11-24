@@ -95,6 +95,26 @@ struct BrowserPreferencesTests {
 
 @Suite @MainActor
 struct WebsitePlayerTests {
+    @Test
+    func youtubeTileKeepsTVModeWithAnExternalWebsitePlayer() throws {
+        try withController { tv in
+            let external = BrowserChoice.app("com.google.Chrome")
+            tv.browserPreferences.setChoice(external, for: tv.profile.id)
+            let youtube = try #require(tv.services.first { $0.id == "youtube" })
+            let tvURL = try #require(URL(string: "https://www.youtube.com/tv"))
+            let search = try #require(URL(string: "https://www.youtube.com/results?search_query=music"))
+            let netflix = try #require(tv.services.first { $0.id == "netflix" })
+            let netflixURL = try #require(URL(string: "https://www.netflix.com/browse"))
+
+            #expect(youtube.kind == .web(tvURL))
+            #expect(youtube.userAgent == UserAgent.smartTV)
+            #expect(!youtube.dpadNavigation)
+            #expect(tv.playbackCoordinator.websitePlayer(for: youtube, url: tvURL) == .embedded)
+            #expect(tv.playbackCoordinator.websitePlayer(for: youtube, url: search) == external)
+            #expect(tv.playbackCoordinator.websitePlayer(for: netflix, url: netflixURL) == external)
+        }
+    }
+
     private func withController(_ body: (TVController) throws -> Void) throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let folder = root.appendingPathComponent("work/tests/players-\(UUID().uuidString)")

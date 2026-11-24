@@ -61,10 +61,32 @@ async function run() {
   await call('Page.addScriptToEvaluateOnNewDocument', { source: `
     localStorage.setItem('mactvKey', 'a'.repeat(64));
     window.testState = { apps: [], autoSkip: false, autoNext: false,
-      keepMacAwake: false, lidOverride: false, displaySetup: { displays: [] } };
+      keepMacAwake: false, lidOverride: false, displaySetup: { displays: [] },
+      speakerVolume: { id:13, name:'MacBook Air Speakers', value:42, muted:false } };
     window.sentCommands = [];
+    window.volumeWrites = [];
+    window.remoteOffline = false;
+    window.brightness = [{ id:'built-in', name:'Built-in Retina Display', value:35, method:'builtIn' },
+      { id:'lg', name:'LG HDR 4K', value:50, method:'betterDisplay' },
+      { id:'unavailable', name:'Other display', error:'No brightness available' }];
+    window.brightnessWrites = [];
     window.fetch = async (path, options) => {
+      if (window.remoteOffline) throw new Error('Disconnected');
       if (path === '/cmd') window.sentCommands.push(JSON.parse(options.body).a);
+      if (path === '/audio/volume') {
+        const write = JSON.parse(options.body);
+        window.volumeWrites.push(write);
+        const value = { value:write.value, muted:false };
+        Object.assign(window.testState.speakerVolume, value);
+        return { status:200, ok:true, json:async () => value };
+      }
+      if (path === '/display/brightness') {
+        if (options.method === 'GET') return { status:200, ok:true, json:async () => window.brightness };
+        const write = JSON.parse(options.body);
+        window.brightnessWrites.push(write);
+        window.brightness.find(display => display.id === write.id).value = write.value;
+        return { status:200, ok:true, json:async () => ({ value:write.value }) };
+      }
       return { status: 200, ok: true, json: async () => path === '/state' ? window.testState : [] };
     };
   ` });
@@ -121,6 +143,106 @@ async function run() {
     assert.ok(sheet.width <= sheet.viewport + 1, `${width}x${height}: sheet does not overflow`);
     if (width === 390 && height === 844) await screenshot('390x844-text-sheet.png');
     await evaluate(`document.querySelector('#text-sheet [data-close]').click()`);
+    if (width === 390 && height === 844) {
+      const brightness = await evaluate(`(async () => {
+        document.querySelector('#open-power').click();
+        document.querySelector('[data-page="page-display"]').click();
+        const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+        await settle();
+        const [builtIn, lg, unavailable] = [...document.querySelectorAll('#display-brightness input')];
+        const wasEditable = !builtIn.disabled && !lg.disabled;
+        const presets = [...lg.closest('.brightness-row').querySelectorAll('button')];
+        const presetNames = presets.map(button => button.textContent);
+        const disabledPresets = [...unavailable.closest('.brightness-row').querySelectorAll('button')].every(button => button.disabled);
+        presets[1].click();
+        await settle();
+        const selected = presets.find(button => button.getAttribute('aria-pressed') === 'true')?.textContent;
+        const track = lg.parentElement;
+        track.scrollIntoView({block:'center'});
+        const rect = track.getBoundingClientRect();
+        return { wasEditable, unavailableDisabled:unavailable.disabled && disabledPresets,
+          label:lg.getAttribute('aria-label'), presetNames, selected, writes:brightnessWrites, lgValue:lg.value,
+          track:{ left:rect.left, width:rect.width, y:rect.top + rect.height / 2 } };
+      })()`);
+      assert.ok(brightness.wasEditable && brightness.unavailableDisabled, 'only confirmed brightness is editable');
+      assert.equal(brightness.label, 'LG HDR 4K (BetterDisplay) brightness');
+      assert.deepEqual(brightness.presetNames, ['0%', '25%', '50%', '75%', '100%']);
+      assert.equal(brightness.selected, '25%');
+      assert.deepEqual(brightness.writes, [{ id:'lg', value:25, method:'betterDisplay' }]);
+      assert.equal(brightness.lgValue, '25');
+
+      const touch = (type, percent) => call('Input.dispatchTouchEvent', {
+        type, touchPoints: percent === undefined ? [] : [{
+          x:brightness.track.left + brightness.track.width * percent / 100, y:brightness.track.y, id:1,
+        }],
+      });
+      await touch('touchStart', 25);
+      await delay(400);
+      await touch('touchMove', 62);
+      assert.equal(await evaluate("document.querySelectorAll('#display-brightness input')[1].value"), '62');
+      assert.equal(await evaluate('brightnessWrites.length'), 1, 'a held drag shows a preview without writing');
+      await touch('touchEnd');
+      await delay(100);
+      assert.deepEqual(await evaluate('brightnessWrites.at(-1)'), { id:'lg', value:62, method:'betterDisplay' });
+
+      await touch('touchStart', 76);
+      await touch('touchEnd');
+      await delay(100);
+      assert.deepEqual(await evaluate('brightnessWrites.at(-1)'), { id:'lg', value:75, method:'betterDisplay' });
+
+      await evaluate("document.querySelectorAll('#display-brightness .brightness-row')[1].querySelectorAll('button')[4].click()");
+      await delay(100);
+      assert.deepEqual(await evaluate('brightnessWrites.at(-1)'), { id:'lg', value:100, method:'betterDisplay' });
+
+      await touch('touchStart', 95);
+      await delay(400);
+      await touch('touchMove', 47);
+      await touch('touchCancel');
+      assert.equal(await evaluate('brightnessWrites.length'), 4, 'cancelling a gesture discards its preview');
+      assert.equal(await evaluate("document.querySelectorAll('#display-brightness input')[1].value"), '100');
+      assert.equal(await evaluate("document.querySelectorAll('#display-brightness input')[0].value"), '35');
+
+      const sound = await evaluate(`(async () => {
+        const range = document.querySelector('#speaker-range');
+        const amount = document.querySelector('#speaker-value');
+        const message = document.querySelector('#speaker-msg');
+        const initial = amount.textContent;
+        range.value = '64';
+        range.dispatchEvent(new Event('input'));
+        const preview = amount.textContent;
+        const writesDuringDrag = volumeWrites.length;
+        range.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const confirmed = amount.textContent;
+        testState.speakerVolume.muted = true;
+        await refresh();
+        const muted = amount.textContent;
+        const name = 'USB audio device with a deliberately long display name';
+        testState.speakerVolume = { name, error:'Switch to built-in output.' };
+        await refresh();
+        const unavailable = { disabled:range.disabled, name:document.querySelector('#speaker-name').textContent, message:message.textContent };
+        remoteOffline = true;
+        await refresh();
+        const offline = range.disabled && amount.textContent === '—' && message.textContent.includes('disconnected') &&
+          [...document.querySelectorAll('#display-brightness input')].every(input => input.disabled);
+        remoteOffline = false;
+        testState.speakerVolume = { id:13, name:'MacBook Air Speakers', value:33, muted:false };
+        await refresh();
+        await new Promise(resolve => setTimeout(resolve, 0));
+        return { initial, preview, writesDuringDrag, confirmed, muted, unavailable, offline, writes:volumeWrites,
+          reconnected: !range.disabled && !message.textContent && amount.textContent === '33%' &&
+            !document.querySelector('#display-brightness input').disabled };
+      })()`);
+      assert.equal(sound.initial, '42%');
+      assert.equal(sound.preview, '64%');
+      assert.equal(sound.writesDuringDrag, 0);
+      assert.equal(sound.confirmed, '64%');
+      assert.deepEqual(sound.writes, [{ id:13, value:64 }]);
+      assert.equal(sound.muted, 'Muted');
+      assert.ok(sound.unavailable.disabled && sound.unavailable.name.length > 40 && sound.unavailable.message);
+      assert.ok(sound.offline && sound.reconnected);
+      await evaluate(`document.querySelector('#power-sheet [data-close]').click()`);
+    }
     console.log(`PASS remote layout ${width}x${height}`);
   }
 }

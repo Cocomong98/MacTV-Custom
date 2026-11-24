@@ -77,6 +77,7 @@ final class Updater: ObservableObject {
     }
 
     func start() {
+        guard !LocalBuild.isCustom else { return }
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(20))
             self.check()
@@ -99,6 +100,7 @@ final class Updater: ObservableObject {
 
     /// The Software update row: installs an available update, otherwise checks now.
     func activate() {
+        guard !LocalBuild.isCustom else { return }
         switch state {
         case .available(_, let url): install(from: url, now: true)
         case .ready(_, let image):
@@ -110,6 +112,7 @@ final class Updater: ObservableObject {
     }
 
     func check() {
+        guard !LocalBuild.isCustom else { return }
         switch state {
         case .checking, .downloading, .ready, .installing: return
         default: break

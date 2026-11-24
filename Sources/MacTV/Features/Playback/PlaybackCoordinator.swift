@@ -46,6 +46,10 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         iinaSession != nil
     }
 
+    var externalWindowScreen: NSScreen? {
+        iinaSession?.windowScreen ?? externalBrowser?.windowScreen
+    }
+
     func resetPlaybackRequest() {
         playbackRequest = UUID()
     }
@@ -63,9 +67,16 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
 
     // MARK: - Web Playback
 
+    func websitePlayer(for service: Service, url: URL) -> BrowserChoice {
+        // The YouTube tile needs the TV user agent. Other links (including Top Shelf search)
+        // continue to use the profile's configured website player.
+        if service.id == "youtube", service.kind == .web(url) { return .embedded }
+        return tv.map { $0.browserPreferences.choice(for: $0.profile.id) } ?? .embedded
+    }
+
     func playWeb(_ service: Service, url: URL) {
         var notice = "Home on your phone remote, or ⌘⇧H, comes back here"
-        switch tv?.browserPreferences.choice(for: tv?.profile.id ?? "") {
+        switch websitePlayer(for: service, url: url) {
         case .brave:
             playInBrowser(BrowserChoice.braveBundleID, name: "Brave", service: service, url: url)
             return
@@ -75,7 +86,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
                 return
             }
             notice = "The chosen browser isn't installed, so Mac TV is playing \(service.name)"
-        default: break
+        case .embedded: break
         }
         playbackRequest = UUID()
         currentLocalMovie = nil
@@ -383,6 +394,10 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
                 guard let self, let session, self.iinaSession === session else { return }
                 self.iinaPlaybackError = nil
                 self.iinaPlaybackStatus = "IINA on \(screen.localizedName)"
+            }
+            session.onVolume = { [weak self, weak session] volume in
+                guard let self, let session, self.iinaSession === session else { return }
+                self.tv?.showVolume(volume)
             }
             try session.launch(file: movie.url, subtitle: subtitle, position: pos, screen: screen)
             tv?.displayCoordinator.holdPlaybackKeepAwake(reason: "Watching a movie in IINA")

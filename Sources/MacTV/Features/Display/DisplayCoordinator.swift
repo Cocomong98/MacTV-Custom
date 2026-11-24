@@ -21,12 +21,19 @@ final class DisplayCoordinator: ObservableObject {
     @Published private(set) var lidSleepOff = false
     @Published private(set) var displaysSleeping = false
     private var lastDisplayWakeRequest = -Double.infinity
+    let brightness: DisplayBrightness
+    let levelOSD: SideLevelOSD
 
     private let preferences: Preferences
 
     init(tv: TVController? = nil, preferences: Preferences = .shared) {
         self.tv = tv
         self.preferences = preferences
+        let osd = SideLevelOSD()
+        levelOSD = osd
+        brightness = DisplayBrightness { [weak osd] displayID, value in
+            osd?.show(.brightness(value), on: displayID)
+        }
     }
 
     /// Prevent the Mac from sleeping automatically while Mac TV is open so the remote remains responsive.
@@ -64,16 +71,25 @@ final class DisplayCoordinator: ObservableObject {
         if let powerSource { CFRunLoopAddSource(CFRunLoopGetMain(), powerSource, .defaultMode) }
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refreshPower() }
+            MainActor.assumeIsolated {
+                self?.brightness.invalidate()
+                self?.levelOSD.dismiss()
+                self?.refreshPower()
+            }
         }
         // Closing the lid with a TV connected switches the built-in display off.
         screensObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refreshPower() }
+            MainActor.assumeIsolated {
+                self?.brightness.invalidate()
+                self?.levelOSD.dismiss()
+                self?.refreshPower()
+            }
         }
     }
 
     func stopPowerManagement() {
+        levelOSD.dismiss()
         powerTimer?.invalidate()
         powerTimer = nil
         if let powerSource { CFRunLoopRemoveSource(CFRunLoopGetMain(), powerSource, .defaultMode) }
@@ -154,7 +170,10 @@ final class DisplayCoordinator: ObservableObject {
 
     func noteDisplaySleep(_ sleeping: Bool) {
         displaysSleeping = sleeping
-        if sleeping { tv?.screensaverOff() }
+        if sleeping {
+            levelOSD.dismiss()
+            tv?.screensaverOff()
+        }
     }
 
     func wakeDisplays() {

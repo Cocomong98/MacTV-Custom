@@ -396,6 +396,7 @@ final class RemoteServer {
             var snapshot = state()
             snapshot["guest"] = device.isGuest
             if device.isGuest {
+                snapshot.removeValue(forKey: "speakerVolume")
                 snapshot.removeValue(forKey: "currentLocalMovie")
                 if let current = snapshot["current"] as? [String: Any], current["id"] as? String == "movies" {
                     snapshot["current"] = ["id": "movies", "name": "Movie"]

@@ -119,7 +119,8 @@ extension SettingsPanel.Section {
         case .apps: [.addApp, .arrangeApps, .topShelfPreferences]
         case .dedicatedTV: [.dedicatedTV, .preferredDisplay, .launchAtLogin]
         case .power: [.keepMacAwake, .lidOverride, .screenOff, .sleepMac]
-        case .about: [.version, .update, .autoUpdate, .source, .report] + (Analytics.available ? [.analytics] : [])
+        case .about: [.version] + (LocalBuild.isCustom ? [] : [.update, .autoUpdate])
+            + [.source, .report] + (Analytics.available ? [.analytics] : [])
         case .profiles, .movies: []
         }
     }

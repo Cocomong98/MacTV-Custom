@@ -348,6 +348,10 @@ final class BrowserSession {
         }
     }
 
+    var windowScreen: NSScreen? {
+        (try? windowBounds(force: true)).flatMap(NSScreen.overlappingQuartzBounds)
+    }
+
     private func windowBounds(force: Bool = false) throws -> CGRect {
         if !force, let bounds = cachedBounds, Date().timeIntervalSince(lastBoundsRead) < 0.25 { return bounds }
         guard let window else { throw SessionError.noWindow }

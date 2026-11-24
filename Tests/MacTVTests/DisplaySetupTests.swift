@@ -5,6 +5,38 @@ import Testing
 @testable import MacTV
 
 @Suite @MainActor struct DisplaySetupTests {
+    @Test func brightnessRouteRequiresTrustedDeviceAndRejectsInvalidValuesOrTargets() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let tv = TVController(library: AppLibrary(folder: folder))
+        let pairing = PairingStore(folder: folder)
+        let trusted = try pairing.issue(name: "Trusted", guest: false)
+        let guest = try pairing.issue(name: "Guest", guest: true)
+        let server = RemoteServer(token: "", onCommand: { _ in }, state: { [:] }, icon: { _ in nil },
+                                  routes: { tv.handleAppsRequest($0) }, pairing: pairing)
+        func request(_ key: String?, _ body: String? = nil) -> HTTPResponse {
+            server.respond(to: HTTPRequest(method: body == nil ? "GET" : "POST", path: "/display/brightness",
+                                           query: [:], headers: key.map { ["x-couch-key": $0] } ?? [:],
+                                           body: Data((body ?? "").utf8)))
+        }
+
+        #expect(request(nil).status == "401 Unauthorized")
+        #expect(request(guest).status == "403 Forbidden")
+        #expect(request(guest, #"{"id":"disconnected","value":50,"method":"betterDisplay"}"#).status == "403 Forbidden")
+        let status = request(trusted)
+        #expect(status.status == "200 OK")
+        let displays = try #require(JSONSerialization.jsonObject(with: status.body) as? [[String: Any]])
+        if let builtIn = displays.first(where: { $0["builtIn"] as? Bool == true }), let id = builtIn["id"] as? String {
+            #expect(builtIn["method"] as? String == "builtIn")
+            #expect(request(trusted, #"{"id":"\#(id)","value":50,"method":"betterDisplay"}"#).status == "409 Conflict")
+            for value in ["-1", "101", "true", "1.5", #""40""#] {
+                #expect(request(trusted, #"{"id":"\#(id)","value":\#(value),"method":"builtIn"}"#).status == "400 Bad Request")
+            }
+        }
+        #expect(request(trusted, #"{"id":"disconnected","value":50,"method":"betterDisplay"}"#).status == "400 Bad Request")
+    }
+
     @Test func selectionMovesTheWindowOutsideDedicatedModeAndRejectsDisconnectedIDs() async throws {
         _ = NSApplication.shared
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

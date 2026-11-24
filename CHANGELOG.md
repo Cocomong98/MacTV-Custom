@@ -1,0 +1,14 @@
+# 변경 기록
+
+## 0.1.0
+
+MacBook Air M1, LG 32UP830과 아이폰을 사용하는 개인용 파생 프로젝트의 첫 공개 빌드다.
+
+- 웨이브·왓챠·티빙·라프텔 기본 타일과 유튜브 TV 모드를 제공한다.
+- QR 리모컨의 **Display & sound**에서 화면별 밝기와 내장 스피커 음량을 조절한다. LG의 통합 밝기를 사용하려면 BetterDisplay를 실행한다.
+- 조절한 화면에 밝기 OSD, 재생 화면에 음량 OSD를 표시한다.
+- 기존 Mac TV와 독립된 앱 데이터와 페어링을 사용한다. DMG에 `MacTV Custom.app`과 응용 프로그램 폴더 바로가기가 들어 있다.
+
+macOS 14 이상을 대상으로 빌드하며 MacBook Air M1에서 검증했다. DMG의 앱은 로컬 임시 서명으로 빌드했다. 아이폰 전체 회귀, 외부 플레이어 전체화면, LG 직접 DDC 및 HDR 검증 상태는 테스트 기록에 정리했다.
+
+원본은 Arunprakaash의 [Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22)이며 MIT 라이선스를 유지한다.

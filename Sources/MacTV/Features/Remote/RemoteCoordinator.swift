@@ -152,6 +152,7 @@ final class RemoteCoordinator: ObservableObject {
             "sleepMinutes": tv.sleepMinutesLeft,
         ]
         state["displaySetup"] = ["displays": tv.displaySetup, "fullscreen": tv.window?.styleMask.contains(.fullScreen) ?? false]
+        state["speakerVolume"] = tv.audioCoordinator.remoteSpeakerState()
         state["displaysSleeping"] = tv.displaysSleeping
         state["websitePlayer"] = tv.browserPreferences.choice(for: tv.profile.id).rawValue
         state["braveInstalled"] = tv.braveInstalled
@@ -204,12 +205,38 @@ final class RemoteCoordinator: ObservableObject {
         guard let tv else { return nil }
         if let response = tv.handleSharesRequest(request) { return response }
         if let response = tv.handleJellyfinRequest(request) { return response }
+        if request.path == "/display/brightness" {
+            if request.method == "GET" { return .json(tv.displayCoordinator.brightness.snapshot()) }
+            if request.method == "POST" {
+                guard let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any],
+                      let id = body["id"] as? String,
+                      let rawMethod = body["method"] as? String, let method = DisplayBrightness.Method(rawValue: rawMethod),
+                      let number = body["value"] as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+                      let value = body["value"] as? Int, (0...100).contains(value) else {
+                    return .json(["error": "Choose a connected display and an integer from 0 to 100."], status: "400 Bad Request")
+                }
+                return tv.displayCoordinator.brightness.set(id: id, level: value, method: method)
+            }
+        }
         if request.method == "POST", request.path == "/display/select" {
             guard let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any],
                   let id = body["id"] as? String, tv.selectTVDisplay(id: id) else {
                 return .json(["error": "Choose a connected display."], status: "400 Bad Request")
             }
             return .json(["ok": true])
+        }
+        if request.method == "POST", request.path == "/audio/volume" {
+            guard let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any],
+                  let rawID = body["id"] as? NSNumber, CFGetTypeID(rawID) != CFBooleanGetTypeID(),
+                  let id = body["id"] as? UInt32, id > 0,
+                  let number = body["value"] as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+                  let value = body["value"] as? Int, (0...100).contains(value) else {
+                return .json(["error": "Choose an audio output and an integer from 0 to 100."], status: "400 Bad Request")
+            }
+            guard let volume = tv.audioCoordinator.setRemoteSpeakerVolume(value, deviceID: id), let level = volume.level else {
+                return .json(["error": "The built-in speakers are no longer available for this control."], status: "409 Conflict")
+            }
+            return .json(["value": level, "muted": volume.muted])
         }
         if request.method == "POST", request.path == "/browser/open" {
             guard let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any],

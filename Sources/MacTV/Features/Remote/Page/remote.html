@@ -175,7 +175,7 @@
 
       <div class="section-label">TV</div>
       <div class="group">
-        <button class="row nav" data-page="page-display"><span>Display</span><span class="value" id="display-value">Automatic</span></button>
+        <button class="row nav" data-page="page-display"><span>Display &amp; sound</span><span class="value" id="display-value">Automatic</span></button>
       </div>
       <div class="tiles">
         <button class="tile" id="screen-on">Wake screen</button>
@@ -212,7 +212,21 @@
     </section>
 
     <section class="page" id="page-display" hidden>
-      <div class="page-head"><button class="back" data-back>Settings</button><span>Display</span></div>
+      <div class="page-head"><button class="back" data-back>Settings</button><span>Display &amp; sound</span></div>
+      <div class="section-label">Volume</div>
+      <div class="group">
+        <div class="row brightness-row">
+          <span id="speaker-name">Built-in speakers</span><output id="speaker-value" for="speaker-range">—</output>
+          <input class="speaker-range" id="speaker-range" type="range" min="0" max="100" step="1" value="0"
+                 aria-label="Built-in speaker volume" aria-describedby="speaker-msg" disabled>
+          <small id="speaker-msg" role="status" hidden></small>
+        </div>
+      </div>
+      <div class="section-label" id="brightness-label">Brightness</div>
+      <p class="footnote" id="brightness-help">Tap a preset, or hold and drag the slider for finer control.</p>
+      <div class="group" id="display-brightness" role="group" aria-labelledby="brightness-label"></div>
+      <p class="footnote" id="brightness-msg" role="status" hidden></p>
+      <div class="section-label">Playback display</div>
       <div class="group choices" id="display-select"></div>
       <p class="footnote" id="display-msg" role="status" aria-live="polite" hidden></p>
     </section>
