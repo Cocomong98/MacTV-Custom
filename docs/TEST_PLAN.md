@@ -135,5 +135,6 @@ MACTV_DATA_DIR="$test_root/data" \
 
 - `bash scripts/make-custom-dmg.sh`로 압축 DMG와 SHA‑256을 생성했다. 이미지 검사와 체크섬 검증, 읽기 전용 마운트에 성공했다. 내부 앱의 서명·`arm64`와 `x86_64`·표시 버전 `0.1.0`과 `Applications` 바로가기를 확인했다.
 - `release`의 SemVer 태그에서 실행되는 GitHub Actions가 테스트 후 DMG를 게시한다. 빌드 및 배포 절차는 [브랜치와 배포](RELEASING.md)에 기록했다.
+- 첫 `v0.1.0` 태그를 푸시한 뒤 배포 워크플로 실행이 표시되지 않아 로컬 검증 파일을 직접 게시했다. GitHub가 표시한 DMG와 체크섬 파일의 SHA‑256이 로컬 파일과 일치했다. 태그를 바탕으로 한 자동 게시의 첫 실행은 아직 확인하지 못했다. [첫 공개 릴리스](https://github.com/Cocomong98/MacTV-Custom/releases/tag/v0.1.0)
 
 판정은 통과, 실패, 차단, 미실행, 범위 제외를 사용한다. 자동화 통과만으로 광고, DDC/CI, 아이폰 조작 및 재생 중 전체화면 OSD를 실기기 통과로 기록하지 않는다.

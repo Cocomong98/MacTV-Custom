@@ -4,6 +4,8 @@
 
 복구용 원본은 형제 폴더 `MacTV-Upstream`의 `v0.22` 체크아웃에 있다. `MacTV-Custom`은 이 커밋의 이력을 이어받으며, 첫 공개 버전 `0.1.0`부터 [브랜치와 배포](RELEASING.md) 흐름을 사용한다.
 
+첫 버전 `0.1.0`의 DMG와 SHA‑256을 GitHub Releases에 게시했다. 태그의 자동 배포 실행 여부는 이후 배포에서 확인한다. [첫 공개 릴리스](https://github.com/Cocomong98/MacTV-Custom/releases/tag/v0.1.0)
+
 ## 0. 원본 확보와 무수정 기준선
 
 1. 설치해 사용하는 Mac TV 버전을 확인한다. 해당 버전과 일치하는 태그를 우선 검토하고, 사용할 수 있는 릴리스 또는 커밋을 고른다. 공식 저장소와 고정 버전의 라이선스를 확인한다. [원본 저장소](https://github.com/Arunprakaash/mac-tv) · [릴리스](https://github.com/Arunprakaash/mac-tv/releases)
