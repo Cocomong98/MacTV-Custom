@@ -3,7 +3,18 @@
 - 기능은 `main`에서 `add-기능명` 브랜치를 만든다. 예를 들어 `add-remote-presets`에서 작업하고 테스트를 거쳐 `main`에 PR로 병합한다.
 - 주간 배포를 준비할 때 `main`의 검증된 변경을 `release`로 병합한다. 배포 변경에서 `VERSION`과 `CHANGELOG.md`를 함께 갱신한다.
 - [Semantic Versioning](https://semver.org/lang/ko/)을 따른다. 일반 배포에서 호환되는 버그 수정은 `PATCH`, 호환되는 기능 추가는 `MINOR`, 호환성 파괴는 `MAJOR`를 올린다. `0.x` 개발 단계의 호환성 변경은 `MINOR`를 올리고 변경 기록에 영향을 적는다.
-- 배포 커밋을 `release`에 푸시한 다음 같은 커밋에 `vMAJOR.MINOR.PATCH` 태그를 붙여 푸시한다. GitHub Actions가 버전·브랜치·테스트를 확인하고 GitHub Releases에 DMG와 SHA‑256을 게시한다. 배포 후 `release`의 버전과 변경 기록을 `main`에 다시 병합한다. 이미 배포한 태그의 수정은 다음 버전에서 한다.
+- 배포 커밋을 `release`에 푸시하고 같은 커밋에 `vMAJOR.MINOR.PATCH` 태그를 붙인다. 서명용 Mac에서 아래 명령으로 만든 DMG와 SHA‑256을 같은 태그의 GitHub Releases에 게시한다. GitHub Actions는 게시된 두 파일의 체크섬과 DMG 형식을 검증한다.
+- DMG가 게시되면 `main`에 배포 커밋을 반영하고 `Casks/mactv-custom.rb`의 버전과 SHA‑256을 갱신한다. 이미 배포한 태그와 파일의 수정은 다음 버전에서 한다.
+
+## 배포용 서명
+
+`0.2.0`부터 같은 배포 인증서와 번들 ID `local.couch.tv.custom`을 사용한다. 인증서의 표시 이름이 같아도 새로 만들면 서명 요건이 달라진다. 서명은 배포용 Mac의 키체인에서 수행한다.
+
+```bash
+MACTV_SIGN_IDENTITY=00965DC4A85ABD2B8C0994FC18D46BE39931E849 bash scripts/make-custom-dmg.sh
+```
+
+첫 Cask 버전에서 한 번 실행을 승인하고, 같은 Cask의 다음 버전으로 업데이트해 macOS 실행 승인이 이어지는지 확인한다.
 
 ## 로컬 확인
 

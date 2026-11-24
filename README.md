@@ -1,12 +1,21 @@
 # MacTV-Custom
 
-MacBook Air M1과 LG 32UP830을 아이폰 하나로 제어하는 개인용 Mac TV 커스텀 프로젝트다. 기존 홈과 QR 웹 리모컨을 유지하고 국내 OTT, 유튜브 TV 모드, 화면별 밝기 및 측면 OSD를 추가한다.
+맥북에서 Apple TV처럼 스트리밍을 보고 아이폰을 리모컨으로 사용하는 macOS 앱입니다.
 
 Arunprakaash가 만든 [Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22)를 기반으로 한다. 원본 커밋 `50c9fd90f2f9f373cfdb5aed1a6adac15b369051`과 Git 이력, [MIT 라이선스](LICENSE)를 보존한다.
 
 ## 다운로드
 
-[GitHub Releases](https://github.com/Cocomong98/MacTV-Custom/releases)에서 `MacTV-Custom-<버전>.dmg`를 받아 열고 **MacTV Custom.app**을 **Applications**로 끌어 놓는다. 이 앱은 임시 서명으로 배포한다. 최초 실행에서 macOS의 확인 화면이 나오면 설치 파일이 이 저장소의 릴리스에서 받은 것인지 확인한 뒤 Apple 안내를 따른다. [Apple의 앱 열기 안내](https://support.apple.com/ko-kr/102445)
+[GitHub Releases](https://github.com/Cocomong98/MacTV-Custom/releases)에서 `MacTV-Custom-<버전>.dmg`를 받아 열고 **MacTV Custom.app**을 **Applications**로 끌어 놓습니다. `0.2.0`부터 같은 자체 서명 인증서로 배포합니다. 최초 실행에서 macOS의 확인 화면이 나오면 파일 출처와 체크섬을 확인한 뒤 Apple 안내를 따르세요. [Apple의 앱 열기 안내](https://support.apple.com/ko-kr/102445)
+
+### Homebrew 설치
+
+```bash
+brew tap Cocomong98/mactv https://github.com/Cocomong98/MacTV-Custom.git
+brew install --cask Cocomong98/mactv/mactv-custom
+```
+
+다음 버전은 `brew update` 후 `brew upgrade --cask Cocomong98/mactv/mactv-custom`으로 설치합니다. DMG로 설치한 `0.1.0` 사용자는 기존 앱 번들을 별도 폴더에 옮긴 뒤 Cask로 설치하면 앱 데이터 폴더와 페어링을 이어서 사용할 수 있습니다.
 
 ## 시작하기
 

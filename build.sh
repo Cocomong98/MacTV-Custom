@@ -69,11 +69,15 @@ fi
 # Sign with the local certificate when it exists (scripts/make-signing-cert.sh), so macOS keeps
 # permissions like Accessibility across builds; otherwise sign ad hoc.
 IDENTITY="${MACTV_SIGN_IDENTITY:-$DEFAULT_IDENTITY}"
-if security find-identity -p codesigning 2>/dev/null | grep -F "\"$IDENTITY\"" >/dev/null; then
-    codesign --force --entitlements Assets/MacTV.entitlements --sign "$IDENTITY" "$APP" >/dev/null
-else
-    codesign --force --entitlements Assets/MacTV.entitlements --sign - "$APP" >/dev/null
+AVAILABLE_IDENTITIES=$(security find-identity -p codesigning 2>/dev/null)
+if [[ "$AVAILABLE_IDENTITIES" != *"\"$IDENTITY\""* && "$AVAILABLE_IDENTITIES" != *" $IDENTITY "* ]]; then
+    if [[ -n "${MACTV_SIGN_IDENTITY:-}" ]]; then
+        echo "Requested signing identity is unavailable: $IDENTITY" >&2
+        exit 1
+    fi
+    IDENTITY=-
 fi
+codesign --force --entitlements Assets/MacTV.entitlements --sign "$IDENTITY" "$APP" >/dev/null
 codesign --verify --deep --strict "$APP"
 
 # Replace only a complete, verified workspace bundle, keeping the previous one if publication fails.

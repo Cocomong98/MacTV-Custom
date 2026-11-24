@@ -6,6 +6,8 @@
 
 첫 버전 `0.1.0`의 DMG와 SHA‑256을 GitHub Releases에 게시했다. 태그의 자동 배포 실행 여부는 이후 배포에서 확인한다. [첫 공개 릴리스](https://github.com/Cocomong98/MacTV-Custom/releases/tag/v0.1.0)
 
+`0.2.0`에는 국내 OTT 타일 아이콘, 한국어 첫 연결과 새 앱 아이콘을 적용했다. 같은 인증서로 서명한 연속 버전의 Homebrew 실행 승인 승계는 실기기 검증 항목으로 남아 있다.
+
 ## 0. 원본 확보와 무수정 기준선
 
 1. 설치해 사용하는 Mac TV 버전을 확인한다. 해당 버전과 일치하는 태그를 우선 검토하고, 사용할 수 있는 릴리스 또는 커밋을 고른다. 공식 저장소와 고정 버전의 라이선스를 확인한다. [원본 저장소](https://github.com/Arunprakaash/mac-tv) · [릴리스](https://github.com/Arunprakaash/mac-tv/releases)
