@@ -156,7 +156,11 @@ async function request(path, body, authenticated = true, cancelSignal = null) {
         throw new Error('unpaired');
       }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || res.statusText);
+      if (!res.ok) {
+        const error = new Error(data.error || res.statusText);
+        error.status = res.status;
+        throw error;
+      }
       return data;
     })()]);
   } finally {
@@ -884,7 +888,12 @@ async function pair(code, name) {
 }
 $('#pair-btn').onclick = async () => {
   try { await pair($('#code').value.trim(), $('#device-name').value.trim()); haptic('tap'); }
-  catch (e) { haptic('error'); $('#pair-err').textContent = e.message; }
+  catch (e) {
+    haptic('error');
+    $('#pair-err').textContent = e.status === 401 ? '코드가 틀렸거나 만료되었습니다. 맥 화면의 코드를 확인하세요.'
+      : e.status === 429 ? '여러 번 실패했습니다. 1분 뒤 다시 시도하세요.'
+      : '연결하지 못했습니다. 맥북과 아이폰이 같은 Wi-Fi에 연결되어 있는지 확인하세요.';
+  }
 };
 // A list row: a name with a detail under it, and its buttons on the right.
 function itemRow(title, detail, buttons) {

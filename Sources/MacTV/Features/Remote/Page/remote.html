@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mac TV">
 <meta name="theme-color" content="#0a0b0e">
-<title>Mac TV Remote</title>
+<title>MacTV 리모컨</title>
 <link rel="apple-touch-icon" href="/appicon.png">
 <link rel="icon" type="image/png" href="/appicon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -266,13 +266,13 @@
   </div>
 </div>
 
-<div id="pair">
-  <h1>Pair with your TV</h1>
-  <p>Enter the 6-digit code chosen on the TV. It determines this phone’s access.</p>
-  <input id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-label="Pairing code">
-  <input id="device-name" maxlength="60" placeholder="Device name (optional)" aria-label="Device name">
-  <button id="pair-btn">Pair</button>
-  <p id="pair-err"></p>
+<div id="pair" lang="ko">
+  <h1>MacTV 리모컨 연결</h1>
+  <p>맥 화면에 표시된 6자리 연결 코드를 입력하세요.</p>
+  <input id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-label="연결 코드">
+  <input id="device-name" maxlength="60" placeholder="기기 이름 (선택)" aria-label="기기 이름">
+  <button id="pair-btn">연결</button>
+  <p id="pair-err" role="status"></p>
 </div>
 
 <script src="remote.js"></script>

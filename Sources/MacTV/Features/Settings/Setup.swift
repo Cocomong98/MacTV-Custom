@@ -176,11 +176,11 @@ struct SetupScreen: View {
     private func setupHints(_ flow: SetupFlow) -> HintSet {
         switch flow.step {
         // The first screen also shows how to get around.
-        case .welcome: .custom([.move("Move"), .select("Select"), .back("Back")])
-        case .apps: .custom([.move("Choose"), .select("Select")])
-        case .remote: .custom([.select("Continue")])
+        case .welcome: .custom([.move("이동"), .select("선택"), .back("뒤로")])
+        case .apps: .custom([.move("이동"), .select("선택")])
+        case .remote: .custom([.select("계속")])
         case .privacy: .pick
-        case .done: .custom([.select("Start")])
+        case .done: .custom([.select("시작")])
         }
     }
 
@@ -192,9 +192,9 @@ struct SetupScreen: View {
                 .resizable()
                 .frame(width: 200, height: 200)
                 .shadow(color: .black.opacity(0.5), radius: 30, y: 16)
-            title("Welcome to Mac TV")
-            subtitle("Your streaming apps on the big screen, with your phone as the remote. Setting up takes about a minute.")
-            ShelfButton(title: "Get Started", focused: true, glass: false) { tv.activateSetup(0) }
+            title("MacTV Custom에 오신 것을 환영합니다")
+            subtitle("맥북에서 스트리밍을 보고, 아이폰으로 조작할 수 있습니다. 설정에는 약 1분이 걸립니다.")
+            ShelfButton(title: "시작하기", focused: true, glass: false) { tv.activateSetup(0) }
                 .padding(.top, 20)
         }
     }
@@ -203,8 +203,8 @@ struct SetupScreen: View {
         let choices = tv.setupChoices
         let rows = stride(from: 0, to: choices.count, by: SetupFlow.columns).map { Array($0..<min($0 + SetupFlow.columns, choices.count)) }
         return VStack(spacing: 28) {
-            title("Choose your apps")
-            subtitle("Pick what goes on your home screen. You can add any website, Mac app or Steam game later with Add App.")
+            title("홈에 표시할 앱 선택")
+            subtitle("홈에 표시할 앱을 선택하세요. 웹사이트, Mac 앱, Steam 게임은 나중에도 추가할 수 있습니다.")
             VStack(spacing: 34) {
                 ForEach(rows, id: \.self) { row in
                     HStack(spacing: 40) {
@@ -215,20 +215,20 @@ struct SetupScreen: View {
                 }
             }
             .padding(.top, 20)
-            ShelfButton(title: "Continue", focused: flow.index == choices.count, glass: false) { tv.advanceSetup() }
+            ShelfButton(title: "계속", focused: flow.index == choices.count, glass: false) { tv.advanceSetup() }
                 .padding(.top, 16)
         }
     }
 
     private func remote(_ flow: SetupFlow) -> some View {
         VStack(spacing: 28) {
-            title("Use your phone as the remote")
-            subtitle("Scan a code with your phone's camera. It opens a remote in the browser, with nothing to install. Add it to your home screen to keep it handy.")
+            title("아이폰을 리모컨으로 연결")
+            subtitle("아이폰 카메라로 QR 코드를 스캔하면 브라우저에서 리모컨이 열립니다. 홈 화면에 추가하면 다음에도 쉽게 열 수 있습니다.")
             HStack(alignment: .top, spacing: 36) {
                 if tv.remoteLinks.isEmpty {
                     RoundedRectangle(cornerRadius: 28, style: .continuous).fill(.white.opacity(0.1))
                         .frame(width: 300, height: 300)
-                        .overlay(Text("Connect to Wi-Fi\nor Tailscale").multilineTextAlignment(.center)
+                        .overlay(Text("Wi-Fi 또는 Tailscale에\n연결하세요").multilineTextAlignment(.center)
                             .font(.tv(.caption2)).opacity(0.7))
                 }
                 ForEach(tv.remoteLinks) { link in
@@ -239,9 +239,9 @@ struct SetupScreen: View {
                                 .padding(20)
                                 .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                         }
-                        Text(link.label).font(.tv(.caption2)).opacity(0.8)
+                        Text(link.displayLabel).font(.tv(.caption2)).opacity(0.8)
                         if let fallback = link.fallback {
-                            Text("or open \(fallback)").font(.tv(.caption2)).monospacedDigit().opacity(0.5)
+                            Text("또는 \(fallback) 열기").font(.tv(.caption2)).monospacedDigit().opacity(0.5)
                         }
                     }
                 }
@@ -250,7 +250,7 @@ struct SetupScreen: View {
             .opacity(flow.phoneConnected ? 0.35 : 1)
             .overlay {
                 if flow.phoneConnected {
-                    Label("Remote connected", systemImage: "checkmark.circle.fill")
+                    Label("리모컨 연결됨", systemImage: "checkmark.circle.fill")
                         .font(.tv(.body, emphasized: true))
                         .padding(.horizontal, 34).frame(height: 76)
                         .background(Capsule().fill(Color(white: 0.16)))
@@ -258,9 +258,9 @@ struct SetupScreen: View {
                 }
             }
             .animation(Motion.appear, value: flow.phoneConnected)
-            Text("Away from home, or on Wi-Fi that keeps devices apart? Use the Tailscale code.")
+            Text("같은 Wi-Fi에 연결하세요. 서로 연결할 수 없는 네트워크에서는 Tailscale 코드를 사용할 수 있습니다.")
                 .font(.tv(.caption2)).opacity(0.55)
-            ShelfButton(title: flow.phoneConnected ? "Continue" : "Skip for Now", focused: true, glass: false) { tv.advanceSetup() }
+            ShelfButton(title: flow.phoneConnected ? "계속" : "나중에 연결", focused: true, glass: false) { tv.advanceSetup() }
                 .padding(.top, 8)
         }
     }
@@ -270,11 +270,11 @@ struct SetupScreen: View {
         VStack(spacing: 28) {
             Image(systemName: "chart.bar.xaxis")
                 .font(.system(size: 92, weight: .regular))
-            title("Help improve Mac TV?")
-            subtitle("Share which features you use, anonymously. Never what you watch.")
+            title("Mac TV 개선에 참여하시겠어요?")
+            subtitle("사용한 기능만 익명으로 공유합니다. 시청 기록은 공유하지 않습니다.")
             HStack(spacing: 24) {
-                ShelfButton(title: "Share", focused: flow.index == 0, glass: false) { tv.activateSetup(0) }
-                ShelfButton(title: "Don't Share", focused: flow.index == 1, glass: false) { tv.activateSetup(1) }
+                ShelfButton(title: "공유", focused: flow.index == 0, glass: false) { tv.activateSetup(0) }
+                ShelfButton(title: "공유 안 함", focused: flow.index == 1, glass: false) { tv.activateSetup(1) }
             }
             .padding(.top, 20)
         }
@@ -285,16 +285,16 @@ struct SetupScreen: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 110))
                 .foregroundStyle(Color(hex: "#3DDC84"))
-            title("You're all set")
+            title("설정 완료")
             VStack(alignment: .leading, spacing: 22) {
-                tip("person.crop.circle", "Sign in to each app once", "Mac TV remembers it, like Safari. Type with your keyboard or the phone remote's keys.")
-                tip("house", "Come home any time", "Home on the phone remote, the Menu button on a controller, or ⌘⇧H.")
-                tip("arrow.up.left.and.arrow.down.right", "Fill the TV", "The green button or ⌃⌘F switches to full screen.")
-                tip("gearshape", "Change things later", "Settings has the remote's QR code, the sleep timer and power options.")
+                tip("person.crop.circle", "스트리밍 서비스에 로그인", "MacTV Custom은 로그인 상태를 기억합니다. 맥북이나 아이폰 리모컨의 키보드로 입력할 수 있습니다.")
+                tip("house", "언제든 홈으로 돌아가기", "아이폰 리모컨의 홈 버튼, 컨트롤러의 메뉴 버튼 또는 ⌘⇧H를 누르세요.")
+                tip("arrow.up.left.and.arrow.down.right", "전체 화면으로 보기", "창의 초록색 버튼을 누르거나 ⌃⌘F를 누르세요.")
+                tip("gearshape", "설정에서 변경하기", "설정에서 리모컨 QR 코드, 취침 타이머, 전원 옵션을 찾을 수 있습니다.")
             }
             .frame(width: 900, alignment: .leading)
             .padding(.top, 8)
-            ShelfButton(title: "Start Watching", focused: true, glass: false) { tv.advanceSetup() }
+            ShelfButton(title: "시청 시작", focused: true, glass: false) { tv.advanceSetup() }
                 .padding(.top, 20)
         }
     }

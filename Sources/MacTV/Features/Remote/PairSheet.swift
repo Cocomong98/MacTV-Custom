@@ -12,7 +12,7 @@ struct PairSheet: View {
                 if links.isEmpty {
                     RoundedRectangle(cornerRadius: 28).fill(.white.opacity(0.1))
                         .frame(width: 300, height: 300)
-                        .overlay(Text("Connect to Wi-Fi\nor Tailscale").multilineTextAlignment(.center)
+                        .overlay(Text("Wi-Fi 또는 Tailscale에\n연결하세요").multilineTextAlignment(.center)
                             .font(.tv(.caption2)).opacity(0.7))
                 }
                 ForEach(links) { link in
@@ -23,26 +23,26 @@ struct PairSheet: View {
                                 .padding(20)
                                 .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                         }
-                        Text(link.label).font(.tv(.caption2)).opacity(0.8)
+                        Text(link.displayLabel).font(.tv(.caption2)).opacity(0.8)
                         if let fallback = link.fallback {
-                            Text("or open \(fallback)").font(.tv(.caption2)).monospacedDigit().opacity(0.5)
+                            Text("또는 \(fallback) 열기").font(.tv(.caption2)).monospacedDigit().opacity(0.5)
                         }
                     }
                 }
             }
             VStack(alignment: .leading, spacing: 18) {
-                Text("Use your phone as a remote").font(.tv(.title3, emphasized: true))
-                Text("Scan with your phone's camera. Code \(tv.pairingGuest ? tv.remoteGuestToken : tv.remoteToken)")
+                Text("아이폰을 리모컨으로 연결").font(.tv(.title3, emphasized: true))
+                Text("아이폰 카메라로 QR 코드를 스캔하세요. 연결 코드 \(tv.pairingGuest ? tv.remoteGuestToken : tv.remoteToken)")
                     .font(.tv(.caption2)).monospacedDigit().foregroundStyle(.white.opacity(0.7))
                 VStack(spacing: 10) {
-                    pairRow("Phone access", value: tv.pairingGuest ? "Guest, 24 hours" : "Full",
+                    pairRow("리모컨 권한", value: tv.pairingGuest ? "게스트 · 24시간" : "전체",
                             focused: tv.pairingFocusedRow == .access) { tv.pairingGuest.toggle() }
                     if tv.pairingRows.contains(.display) {
                         let displays = tv.availableTVDisplays
-                        pairRow("Display", value: (displays.first(where: \.current) ?? displays.first)?.name,
+                        pairRow("화면", value: (displays.first(where: \.current) ?? displays.first)?.name,
                                 focused: tv.pairingFocusedRow == .display) { tv.stepPairingDisplay() }
                     }
-                    pairRow("Show this at launch", value: tv.preferences.showPairingAtLaunch ? "On" : "Off",
+                    pairRow("시작할 때 표시", value: tv.preferences.showPairingAtLaunch ? "켬" : "끔",
                             focused: tv.pairingFocusedRow == .showAtLaunch) {
                         tv.preferences.showPairingAtLaunch.toggle()
                     }
@@ -63,9 +63,9 @@ struct PairSheet: View {
         switch tv.pairingFocusedRow {
         case .access, .showAtLaunch:
             // ←→ and OK both flip — Toggle only.
-            .custom([.moveVertical("Choose"), .select("Toggle"), .back("Close")])
+            .custom([.moveVertical("이동"), .select("전환"), .back("닫기")])
         case .display:
-            .custom([.moveVertical("Choose"), .moveHorizontal("Change"), .back("Close")])
+            .custom([.moveVertical("이동"), .moveHorizontal("변경"), .back("닫기")])
         }
     }
 

@@ -56,6 +56,7 @@ if $CUSTOM; then
     /usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier local.couch.tv.custom' \
         -c "Set :CFBundleDisplayName $NAME" -c "Set :CFBundleName $NAME" \
         -c "Set :CFBundleShortVersionString $VERSION" -c "Set :CFBundleVersion $BUILD_VERSION" \
+        -c 'Set :NSLocalNetworkUsageDescription 같은 Wi-Fi에서 아이폰을 MacTV 리모컨으로 연결하려면 로컬 네트워크 접근이 필요합니다.' \
         -c 'Delete :TelemetryDeckAppID' "$PLIST"
     mkdir -p "$APP/Contents/Resources/Licenses"
     cp LICENSE "$APP/Contents/Resources/Licenses/MacTV.txt"

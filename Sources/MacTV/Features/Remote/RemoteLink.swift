@@ -8,4 +8,5 @@ struct RemoteLink: Identifiable {
     var fallback: String? = nil
     let qr: NSImage?
     var id: String { address }
+    var displayLabel: String { label == "Same Wi-Fi" ? "같은 Wi-Fi" : label }
 }
