@@ -40,7 +40,10 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/MacTV" "$APP/Contents/MacOS/MacTV"
 cp Info.plist "$APP/Contents/Info.plist"
 cp -R Icons "$APP/Contents/Resources/Icons"
-cp Assets/AppIcon.icns Assets/AppIcon.png "$APP/Contents/Resources/"
+ICON=AppIcon
+if $CUSTOM; then ICON=CustomAppIcon; fi
+cp "Assets/$ICON.icns" "$APP/Contents/Resources/AppIcon.icns"
+cp "Assets/$ICON.png" "$APP/Contents/Resources/AppIcon.png"
 # Swift packages' resource bundles (TelemetryDeck's privacy manifest).
 for bundle in "$BIN"/*.bundle; do [ -e "$bundle" ] && cp -R "$bundle" "$APP/Contents/Resources/"; done
 
