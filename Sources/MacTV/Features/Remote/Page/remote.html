@@ -72,25 +72,32 @@
     <p class="note err" id="iina-error" role="status" aria-live="polite" hidden></p>
   </div>
 
-  <button class="row-btn text-tools" id="open-text" aria-label="웹사이트 열기 또는 TV에서 입력">웹사이트 열기 또는 입력</button>
+  <div class="text-tools">
+    <button type="button" class="row-btn" id="open-text" aria-haspopup="dialog" aria-controls="text-sheet">TV에서 입력</button>
+    <button type="button" class="row-btn" id="open-address" aria-haspopup="dialog" aria-controls="address-sheet">웹사이트 열기</button>
+  </div>
 </main>
 
-<div class="scrim" id="text-sheet">
-  <div class="sheet" role="dialog" aria-modal="true" aria-label="웹사이트 열기 또는 TV에서 입력">
-    <div class="sheet-head"><span>웹사이트 및 키보드</span><div><button class="pill" data-close>완료</button></div></div>
-    <div class="group-label">웹사이트 열기</div>
-  <form class="type website-form" id="open-website" autocomplete="off">
-    <input id="website-address" type="text" inputmode="url" placeholder="웹사이트 주소 입력…" aria-label="웹사이트 주소" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button type="submit" id="website-go">열기</button>
-  </form>
-  <p class="note err" id="website-open-error" role="status" aria-live="polite" hidden></p>
+<div class="scrim input-scrim" id="address-sheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="웹사이트 열기">
+    <div class="sheet-head"><span>웹사이트 열기</span><button type="button" class="pill" data-close>닫기</button></div>
+    <form class="type" id="open-website" autocomplete="off">
+      <input id="website-address" type="text" inputmode="url" placeholder="웹사이트 주소 입력…" aria-label="웹사이트 주소" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button type="submit" id="website-go">열기</button>
+    </form>
+    <p class="note err" id="website-open-error" role="status" aria-live="polite" hidden></p>
+  </div>
+</div>
 
-  <div class="group-label">TV에서 입력</div>
-  <form class="type" id="type" autocomplete="off">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
-    <input id="typed" placeholder="TV에 보낼 텍스트 입력…" aria-label="TV에서 입력" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button type="button" data-a="backspace" aria-label="지우기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8l-6 7 6 7h13z"/><path d="M17 9l-6 6M11 9l6 6"/></svg></button>
-  </form>
+<div class="scrim input-scrim" id="text-sheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="TV에서 입력">
+    <div class="sheet-head"><span>TV에서 입력</span><button type="button" class="pill" data-close>닫기</button></div>
+    <form class="type" id="type" autocomplete="off">
+      <input id="typed" placeholder="TV에 보낼 텍스트 입력…" aria-label="TV에서 입력" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button type="button" data-a="backspace" aria-label="TV에서 한 글자 지우기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8l-6 7 6 7h13z"/><path d="M17 9l-6 6M11 9l6 6"/></svg></button>
+      <button type="submit" id="type-done" aria-label="보내기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+    </form>
+    <p class="note err" id="type-error" role="status" aria-live="polite" hidden></p>
   </div>
 </div>
 

@@ -172,6 +172,23 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         }
     }
 
+    /// YouTube's TV search display is a button driven by its on-screen keyboard.
+    /// Its search deep link accepts the complete query without emulating key presses.
+    static func youTubeTVSearchURL(from url: URL?, text: String) -> URL? {
+        guard let url, url.scheme == "https", url.host == "www.youtube.com", url.path == "/tv",
+              let screen = url.fragment?.split(separator: "?", maxSplits: 1).first, screen == "/search",
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        var query = URLComponents()
+        query.queryItems = [URLQueryItem(name: "q", value: text)]
+        // A literal plus is decoded as a space by YouTube's query parser.
+        guard let encoded = query.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+            .replacingOccurrences(of: "#", with: "%23"),
+              var destination = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        // Changing only the fragment lets YouTube TV handle the search in the current document.
+        destination.percentEncodedFragment = "/search?" + encoded
+        return destination.url
+    }
+
     func scrollPage(_ web: WKWebView, by dy: Double) {
         let point = tv?.pointer ?? CGPoint(x: web.bounds.midX, y: web.bounds.midY)
         let x = Int(point.x), y = Int(web.bounds.height - point.y), amount = Int(dy)
@@ -206,9 +223,15 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
             if service.id == "netflix" { sendKey(forward ? .right : .left, to: web) }
             else { runWebPlayback(forward ? "forward" : "backward", in: web, fallback: forward ? .right : .left) }
         case .text(let text):
-            for character in text {
-                sendKey(character == "\n" ? .enter : Key(code: 0, chars: String(character)), to: web)
+            if service.id == "youtube", let searchURL = Self.youTubeTVSearchURL(from: web.url, text: text) {
+                web.load(URLRequest(url: searchURL))
+                return
             }
+            guard let window = tv?.window else { return }
+            if window.firstResponder !== web, !window.makeFirstResponder(web) { return }
+            // Send committed text through WebKit's editor. A synthetic A key can become
+            // an actual "a" in sites that read the physical key instead of its characters.
+            web.inputContext?.client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
         case .deleteBackward: sendKey(.delete, to: web)
         case .pointer(let dx, let dy): tv?.movePointer(dx: dx, dy: dy)
         case .click: tv?.clickPointer()

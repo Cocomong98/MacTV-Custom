@@ -209,23 +209,24 @@ let activeCommand = null;
 function pumpCommands() {
   if (activeCommand || !commandQueue.length) return;
   const item = commandQueue.shift();
-  if (!key) { item.done(); pumpCommands(); return; }
+  if (!key) { item.done(false); pumpCommands(); return; }
   const controller = new AbortController();
   activeCommand = controller;
-  api('/cmd', item.body, controller.signal).catch(e => {
+  api('/cmd', item.body, controller.signal).then(() => item.done(true)).catch(e => {
+    item.done(false);
     if (e.message !== 'unpaired' && e.message !== 'cancelled') { online(false); haptic('error'); }
-  }).finally(() => { activeCommand = null; item.done(); pumpCommands(); });
+  }).finally(() => { activeCommand = null; pumpCommands(); });
 }
 function send(a, extra, kind = 'tick') {
   haptic(kind);
   return new Promise(resolve => {
     const urgent = a === 'home' || a === 'screenoff';
     if (urgent) {
-      while (commandQueue.length) commandQueue.shift().done();
+      while (commandQueue.length) commandQueue.shift().done(false);
       if (activeCommand) activeCommand.abort();
       commandQueue.unshift({ body: { a, ...extra }, done: resolve });
     } else if ((kind === 'repeat' && (activeCommand || commandQueue.length)) || commandQueue.length >= 8) {
-      resolve(); return;
+      resolve(false); return;
     } else {
       commandQueue.push({ body: { a, ...extra }, done: resolve });
     }
@@ -1071,7 +1072,7 @@ $('#revoke-all').onclick = async () => {
 
 // Buttons
 document.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => send(b.dataset.a, {}, b.dataset.h || 'tick')));
-$('#browser-retry').onclick = () => send('retrybrowser', {}, 'tap').then(refresh);
+$('#browser-retry').onclick = () => send('retrybrowser', {}, 'tap').then(() => refresh());
 let websiteOpening = false;
 $('#open-website').onsubmit = async e => {
   e.preventDefault();
@@ -1086,6 +1087,7 @@ $('#open-website').onsubmit = async e => {
     await api('/browser/open', { url });
     input.value = '';
     haptic('tap');
+    closeInputSheet('address-sheet', 'open-address');
     await refresh();
   } catch (error) {
     if (error.message !== 'unpaired') {
@@ -1098,23 +1100,79 @@ $('#open-website').onsubmit = async e => {
     $('#website-go').disabled = false;
   }
 };
-$('#type').onsubmit = e => {
+const typed = $('#typed');
+let composingText = false, committingText = false;
+let lastSentText = null;
+typed.addEventListener('compositionstart', () => { composingText = true; });
+typed.addEventListener('compositionend', () => { composingText = false; });
+typed.addEventListener('blur', () => { composingText = false; });
+typed.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (composingText || e.isComposing || e.keyCode === 229) {
+    // Leave IME confirmation to the keyboard, but ignore any submit from that keydown.
+    committingText = true;
+    setTimeout(() => { committingText = false; }, 0);
+    return;
+  }
   e.preventDefault();
-  const t = $('#typed').value;
-  if (t) send('text', { t }, 'tap');
-  $('#typed').value = '';
+  typed.form.requestSubmit();
+});
+$('#type').onsubmit = async e => {
+  e.preventDefault();
+  const t = typed.value, done = $('#type-done'), note = $('#type-error');
+  if (!t || composingText || committingText || done.disabled) return;
+  done.disabled = true;
+  note.hidden = true;
+  const delivered = await send('text', { t }, 'tap');
+  done.disabled = false;
+  if (!delivered) {
+    note.textContent = '입력을 보냈는지 확인할 수 없습니다. TV 화면을 확인한 뒤 다시 시도하세요.';
+    note.hidden = false;
+  } else if (typed.value === t) {
+    // The Mac acknowledged the request. Keep the draft available if the website ignored it.
+    lastSentText = t;
+    closeInputSheet('text-sheet', 'open-text');
+  }
 };
 
 // Sheets
+function closeInputSheet(sheet, trigger) {
+  const panel = $('#' + sheet);
+  if (!panel.classList.contains('show')) return;
+  panel.classList.remove('show');
+  $('#' + trigger).focus();
+}
 const closeSheets = () => {
-  const closingText = $('#text-sheet').classList.contains('show');
+  closeInputSheet('text-sheet', 'open-text');
+  closeInputSheet('address-sheet', 'open-address');
   document.querySelectorAll('.scrim').forEach(s => s.classList.remove('show'));
-  if (closingText) $('#open-text').focus();
   if (editing) { editing = false; renderApps(); }
 };
 document.querySelectorAll('.scrim').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeSheets(); }));
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
-$('#open-text').onclick = () => { haptic('tick'); $('#text-sheet').classList.add('show'); $('#text-sheet [data-close]').focus(); };
+const inputViewport = window.visualViewport;
+function fitInputSheet() {
+  const panel = document.querySelector('.input-scrim.show');
+  if (!panel || !inputViewport) return;
+  // Safari can pan or shrink the visible area without resizing fixed-position elements.
+  panel.style.setProperty('--input-viewport-top', Math.max(0, inputViewport.offsetTop) + 'px');
+  panel.style.setProperty('--input-viewport-height', inputViewport.height + 'px');
+  panel.classList.toggle('compact', inputViewport.height < 220);
+}
+inputViewport?.addEventListener('resize', fitInputSheet);
+inputViewport?.addEventListener('scroll', fitInputSheet);
+function openInputSheet(sheet, field) {
+  haptic('tick');
+  $('#' + sheet).classList.add('show');
+  fitInputSheet();
+  // iOS requires focusing the input within the tap that opened the sheet.
+  $('#' + field).focus();
+}
+$('#open-text').onclick = () => {
+  openInputSheet('text-sheet', 'typed');
+  if (typed.value === lastSentText) typed.select();
+};
+$('#open-address').onclick = () => openInputSheet('address-sheet', 'website-address');
 $('#open-apps').onclick = () => { haptic('tick'); refresh(); $('#apps-sheet').classList.add('show'); };
 $('#open-power').onclick = () => { haptic('tick'); resetSleep(); showPage('settings-main'); refresh(); loadDevices(); loadShares(); loadJellyfin(); $('#power-sheet').classList.add('show'); };
 // Settings opens sub-pages in place, each with a way back.
@@ -1127,7 +1185,7 @@ document.querySelectorAll('#power-sheet [data-page]').forEach(row => row.onclick
 document.querySelectorAll('#power-sheet [data-back]').forEach(back => back.onclick = () => { haptic('tick'); showPage('settings-main'); });
 document.querySelectorAll('#sleep-chips button').forEach(b => b.onclick = () => {
   const m = Number(b.dataset.m);
-  send('sleeptimer', { m }, 'tap').then(refresh);
+  send('sleeptimer', { m }, 'tap').then(() => refresh());
   showSleep(m);
 });
 async function chooseDisplay(display) {

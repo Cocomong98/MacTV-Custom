@@ -1,10 +1,9 @@
 // Exercise the actual address form without a browser or external network.
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const vm = require('node:vm');
 const { script: source } = require('./page.cjs');
 const start = source.indexOf('let websiteOpening = false;');
-const end = source.indexOf("$('#type').onsubmit", start);
+const end = source.indexOf("const typed =", start);
 const messagesStart = source.indexOf('const remoteMessages =');
 const messagesEnd = source.indexOf('// Keep a small bounded queue', messagesStart);
 assert.ok(start >= 0 && end > start);
@@ -13,12 +12,14 @@ const elements = Object.fromEntries(['open-website', 'website-address', 'website
   .map(id => [id, { value: '', textContent: '', hidden: true, disabled: false }]));
 const requests = [];
 let resolveRequest, rejectRequest, refreshes = 0;
+const closedSheets = [];
 const api = (path, body) => {
   requests.push({ path, body });
   return new Promise((resolve, reject) => { resolveRequest = resolve; rejectRequest = reject; });
 };
 vm.runInNewContext(source.slice(messagesStart, messagesEnd) + source.slice(start, end), {
   $: selector => elements[selector.slice(1)], api, haptic() {}, refresh: async () => { refreshes++; },
+  closeInputSheet: (...args) => closedSheets.push(args),
 });
 const submit = () => elements['open-website'].onsubmit({ preventDefault() {} });
 (async () => {
@@ -38,6 +39,7 @@ const submit = () => elements['open-website'].onsubmit({ preventDefault() {} });
   assert.equal(elements['website-address'].value, '');
   assert.equal(elements['website-go'].disabled, false);
   assert.equal(refreshes, 1);
+  assert.deepEqual(closedSheets, [['address-sheet', 'open-address']]);
   elements['website-address'].value = 'bad-address';
   const failed = submit();
   rejectRequest(new Error('<img src=x onerror=alert(1)>'));
