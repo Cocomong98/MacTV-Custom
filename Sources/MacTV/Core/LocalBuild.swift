@@ -6,6 +6,8 @@ enum LocalBuild {
 }
 
 extension LocalBuild {
+    static let isPublicEdition = Bundle.main.bundleIdentifier == "local.couch.tv.custom"
+
     static var displayName: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "CouchDial"
     }

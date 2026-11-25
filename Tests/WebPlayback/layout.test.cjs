@@ -59,20 +59,39 @@ async function run() {
   };
   await call('Page.enable'); await call('Runtime.enable');
   await call('Page.addScriptToEvaluateOnNewDocument', { source: `
+    const actualViewport = window.visualViewport;
+    window.testInputViewport = new EventTarget();
+    Object.defineProperties(window.testInputViewport, {
+      height: { get: () => window.keyboardViewportHeight ?? actualViewport.height },
+      offsetTop: { get: () => window.keyboardViewportTop ?? actualViewport.offsetTop },
+    });
+    Object.defineProperty(window, 'visualViewport', { value:window.testInputViewport });
     localStorage.setItem('mactvKey', 'a'.repeat(64));
     window.testState = { apps: [], autoSkip: false, autoNext: false,
-      keepMacAwake: false, lidOverride: false, displaySetup: { displays: [] },
+      keepMacAwake: false, lidOverride: false, displaySetup: { displays: [], fullscreen:false },
       speakerVolume: { id:13, name:'MacBook Air Speakers', value:42, muted:false } };
     window.sentCommands = [];
+    window.sentText = [];
     window.volumeWrites = [];
     window.remoteOffline = false;
     window.brightness = [{ id:'built-in', name:'Built-in Retina Display', value:35, method:'builtIn' },
       { id:'lg', name:'LG HDR 4K', value:50, method:'betterDisplay' },
       { id:'unavailable', name:'Other display', error:'No brightness available' }];
     window.brightnessWrites = [];
+    window.fullscreenWrites = [];
     window.fetch = async (path, options) => {
       if (window.remoteOffline) throw new Error('Disconnected');
-      if (path === '/cmd') window.sentCommands.push(JSON.parse(options.body).a);
+      if (path === '/cmd') {
+        const {a, t} = JSON.parse(options.body);
+        window.sentCommands.push(a);
+        if (a === 'text') window.sentText.push(t);
+      }
+      if (path === '/display/fullscreen') {
+        const { fullscreen } = JSON.parse(options.body);
+        fullscreenWrites.push(fullscreen);
+        testState.displaySetup.fullscreenChanging = true;
+        return { status:200, ok:true, json:async () => ({ ok:true }) };
+      }
       if (path === '/audio/volume') {
         const write = JSON.parse(options.body);
         window.volumeWrites.push(write);
@@ -104,7 +123,7 @@ async function run() {
         const r = e => { const x=e.getBoundingClientRect(); return {w:x.width,h:x.height,top:x.top,bottom:x.bottom}; };
         return { ring:r(document.querySelector('#clickpad .ring')), keys:[...document.querySelectorAll('.key')].map(r),
           arrows:[...document.querySelectorAll('#clickpad .chev, #clickpad .ok')].map(r),
-          tool:r(document.querySelector('#open-text')), scroll:document.documentElement.scrollWidth,
+          tool:r(document.querySelector('.text-tools')), scroll:document.documentElement.scrollWidth,
           viewport:innerWidth, height:innerHeight, page:document.documentElement.scrollHeight,
           controls: ${mode === 'brave' ? "!document.querySelector('#browser-controls').hidden" : mode === 'iina' ? "!document.querySelector('#iina-controls').hidden" : 'true'} };
       })()`);
@@ -130,25 +149,125 @@ async function run() {
       if (mode === 'none' && height > width) assert.ok(geometry.tool.bottom <= geometry.height + 1, `${label}: portrait controls fit`);
       if (mode === 'none' && height < width) assert.ok(geometry.page >= geometry.tool.bottom, `${label}: landscape controls scroll into view`);
     }
-    const sheet = await evaluate(`(() => {
-      document.querySelector('#open-text').click();
-      const visible = s => { const e=document.querySelector(s), r=e.getBoundingClientRect(); return !!r.width && !!r.height && getComputedStyle(e).visibility !== 'hidden'; };
-      const result = { visible: visible('#text-sheet'), website: visible('#website-address'), typing: visible('#typed'),
-        websiteLabel: document.querySelector('#website-address').getAttribute('aria-label'),
-        typingLabel: document.querySelector('#typed').getAttribute('aria-label'),
-        width: document.documentElement.scrollWidth, viewport: innerWidth };
-      return result;
-    })()`);
-    assert.ok(sheet.visible && sheet.website && sheet.typing && sheet.websiteLabel && sheet.typingLabel, `${width}x${height}: accessible text sheet`);
-    assert.ok(sheet.width <= sheet.viewport + 1, `${width}x${height}: sheet does not overflow`);
-    if (width === 390 && height === 844) await screenshot('390x844-text-sheet.png');
-    await evaluate(`document.querySelector('#text-sheet [data-close]').click()`);
+    for (const [button, sheet, field, other] of [
+      ['open-text', 'text-sheet', 'typed', 'address-sheet'],
+      ['open-address', 'address-sheet', 'website-address', 'text-sheet'],
+    ]) {
+      const geometry = await evaluate(`(() => {
+        const opener = document.getElementById('${button}');
+        opener.click();
+        const element = id => document.getElementById(id);
+        return { opened: element('${sheet}').classList.contains('show'),
+          otherShown: element('${other}').classList.contains('show'),
+          focused: document.activeElement === element('${field}'),
+          size: opener.getBoundingClientRect().height,
+          width: document.documentElement.scrollWidth, viewport: innerWidth };
+      })()`);
+      assert.ok(geometry.opened && !geometry.otherShown && geometry.focused && geometry.size >= 44,
+        `${width}x${height}: one tap opens and focuses only ${field}`);
+      assert.ok(geometry.width <= geometry.viewport + 1, `${width}x${height}: sheet does not overflow`);
+      if (width === 390 && height === 844) await screenshot(`390x844-${sheet}.png`);
+      const withKeyboard = await evaluate(`(() => {
+        const field = document.getElementById('${field}');
+        const form = field.form;
+        const submit = form.querySelector('button[type="submit"]');
+        field.value = '타이핑 A123';
+        window.keyboardViewportHeight = ${height > width ? 290 : 120};
+        window.keyboardViewportTop = 40;
+        testInputViewport.dispatchEvent(new Event('resize'));
+        window.keyboardViewportTop = 65;
+        testInputViewport.dispatchEvent(new Event('scroll'));
+        const withinViewport = element => {
+          const rect = element.getBoundingClientRect();
+          return rect.top >= keyboardViewportTop && rect.bottom <= keyboardViewportTop + keyboardViewportHeight + 1;
+        };
+        const result = {
+          field: withinViewport(field), button: withinViewport(submit),
+          focus: document.activeElement === field,
+          value:field.value,
+        };
+        field.value = '';
+        delete window.keyboardViewportHeight;
+        delete window.keyboardViewportTop;
+        testInputViewport.dispatchEvent(new Event('resize'));
+        return result;
+      })()`);
+      assert.deepEqual(withKeyboard, { field:true, button:true, focus:true, value:'타이핑 A123' },
+        `${width}x${height}: keyboard resize and pan keep the input and send button above the keyboard`);
+      assert.equal(await evaluate(`document.querySelector('#${sheet} [data-close]').click(); document.activeElement.id`), button);
+    }
     if (width === 390 && height === 844) {
+      const typing = await evaluate(`(async () => {
+        const field = document.querySelector('#typed');
+        const form = field.form, done = document.querySelector('#type-done');
+        if (field.enterKeyHint !== 'send' || done.getAttribute('aria-label') !== '보내기') throw Error('Missing send affordance');
+        const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+        document.querySelector('#open-text').click();
+        field.dispatchEvent(new CompositionEvent('compositionstart'));
+        field.value = '한글A123 다';
+        form.requestSubmit();
+        field.dispatchEvent(new KeyboardEvent('keydown', { key:'Enter', isComposing:true }));
+        field.dispatchEvent(new CompositionEvent('compositionend'));
+        form.requestSubmit();
+        await settle();
+        const duringComposition = sentText.length;
+        field.value = '한글A123 다음😃';
+        form.requestSubmit();
+        done.click();
+        await settle();
+        const finished = !document.querySelector('#text-sheet').classList.contains('show');
+        document.querySelector('#open-text').click();
+        const selectedDraft = field.value === '한글A123 다음😃'
+          && field.selectionStart === 0 && field.selectionEnd === field.value.length;
+        field.value = '연결 확인';
+        remoteOffline = true;
+        done.click();
+        await settle();
+        remoteOffline = false;
+        const recoveredDraft = field.value === '연결 확인' && !document.querySelector('#type-error').hidden;
+        document.querySelector('#text-sheet [data-close]').click();
+        return { duringComposition, text:sentText, finished, selectedDraft, recoveredDraft };
+      })()`);
+      assert.deepEqual(typing, { duringComposition:0, text:['한글A123 다음😃'], finished:true, selectedDraft:true, recoveredDraft:true });
+      await evaluate("document.querySelector('#open-text').click(); document.querySelector('#typed').value = '키보드 완료'");
+      await call('Input.dispatchKeyEvent', { type:'keyDown', key:'Enter', code:'Enter', windowsVirtualKeyCode:13 });
+      await call('Input.dispatchKeyEvent', { type:'keyUp', key:'Enter', code:'Enter', windowsVirtualKeyCode:13 });
+      assert.deepEqual(await evaluate('sentText'), ['한글A123 다음😃', '키보드 완료'], 'Enter submits input without tapping the form button');
+    }
+    if (width === 390 && height === 844) {
+      const fullscreen = await evaluate(`(async () => {
+        const button = document.querySelector('#app-fullscreen');
+        const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+        await refresh();
+        button.click(); button.click();
+        await settle();
+        const pending = button.disabled && button.getAttribute('aria-pressed') === 'false';
+        testState.displaySetup.fullscreen = true;
+        testState.displaySetup.fullscreenChanging = false;
+        await refresh();
+        const active = !button.disabled && button.getAttribute('aria-pressed') === 'true';
+        button.click();
+        await settle();
+        testState.displaySetup.fullscreen = false;
+        testState.displaySetup.fullscreenChanging = false;
+        await refresh();
+        const inactive = !button.disabled && button.getAttribute('aria-pressed') === 'false';
+        testState.guest = true;
+        await refresh();
+        const guestHidden = button.getBoundingClientRect().width === 0
+          && document.querySelector('#open-brightness').getBoundingClientRect().width === 0;
+        testState.guest = false;
+        await refresh();
+        return { pending, active, inactive, guestHidden, writes:fullscreenWrites };
+      })()`);
+      assert.deepEqual(fullscreen, { pending:true, active:true, inactive:true, guestHidden:true, writes:[true,false] });
       const brightness = await evaluate(`(async () => {
-        document.querySelector('#open-power').click();
-        document.querySelector('[data-page="page-display"]').click();
+        document.querySelector('#open-brightness').click();
         const settle = () => new Promise(resolve => setTimeout(resolve, 0));
         await settle();
+        if (document.activeElement.id !== 'brightness-label' || document.querySelector('#page-display').hidden) {
+          throw Error('Brightness shortcut must open and focus the same controls in one tap');
+        }
         const [builtIn, lg, unavailable] = [...document.querySelectorAll('#display-brightness input')];
         const wasEditable = !builtIn.disabled && !lg.disabled;
         const presets = [...lg.closest('.brightness-row').querySelectorAll('button')];
@@ -243,6 +362,25 @@ async function run() {
       assert.ok(sound.offline && sound.reconnected);
       await evaluate(`document.querySelector('#power-sheet [data-close]').click()`);
     }
+    const seek = await evaluate(`(async () => {
+      const keys = [...document.querySelectorAll('[data-seek]')];
+      testState.current = { id:'youtube' };
+      testState.youtubeSeekSeconds = 15;
+      await refresh();
+      const labels = keys.map(key => key.getAttribute('aria-label'));
+      const shown = keys.every(key => !key.querySelector('.seek-seconds').hidden && key.getBoundingClientRect().height >= 44);
+      keys.forEach(key => key.click());
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const commands = sentCommands.slice(-2);
+      document.querySelector('[data-a="home"]').click();
+      const hiddenOnHome = keys.every(key => key.querySelector('.seek-seconds').hidden);
+      testState.current = { id:'netflix' };
+      await refresh();
+      const otherService = keys.map(key => key.dataset.a);
+      return { labels, shown, commands, hiddenOnHome, otherService };
+    })()`);
+    assert.deepEqual(seek, { labels:['15초 뒤로','15초 앞으로'], shown:true, commands:['rewind15','forward15'],
+      hiddenOnHome:true, otherService:['rewind','forward'] });
     console.log(`PASS remote layout ${width}x${height}`);
   }
 }

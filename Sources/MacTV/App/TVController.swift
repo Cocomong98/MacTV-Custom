@@ -363,7 +363,7 @@ final class TVController: NSObject, ObservableObject {
         }
 
         switch command {
-        case .home: goHome(); return
+        case .home: goHome(keepPlayback: true); return
         case .activateBrowser:
             if playbackCoordinator.iinaOpen {
                 playbackCoordinator.activateIINA()
@@ -487,7 +487,7 @@ final class TVController: NSObject, ObservableObject {
         }
     }
 
-    func goHome() {
+    func goHome(keepPlayback: Bool = false) {
         // Leaving a browser window lands on the desktop Space, so coming back needs more than activating.
         let leavingBrowser = playbackCoordinator.externalBrowser != nil
         playbackCoordinator.closeIINAPlayback()
@@ -496,7 +496,7 @@ final class TVController: NSObject, ObservableObject {
         playbackCoordinator.clearCurrentLocalMovie()
         playbackCoordinator.stopMoviePlayer()
         movies = nil
-        playbackCoordinator.closeWebPlayback()
+        if !keepPlayback || !suspendPlayingWebsite() { playbackCoordinator.closeWebPlayback() }
         mode = .launcher
         if case .shelf = focus { setFocus(.app(shelfAppIndex)) }
         sheets.closeDismissible()
@@ -505,6 +505,11 @@ final class TVController: NSObject, ObservableObject {
         launchedAppID = nil
         displayCoordinator.releasePlaybackKeepAwake()
         if leavingBrowser { takeFocusBack() } else { bringToFront() }
+    }
+
+    private func suspendPlayingWebsite() -> Bool {
+        guard case .player(let service) = mode else { return false }
+        return playbackCoordinator.suspendWebPlayback(service: service)
     }
 
     var idleForUpdate: Bool {

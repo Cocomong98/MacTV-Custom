@@ -57,22 +57,26 @@ enum WebPlayback {
                 Promise.resolve(v.play()).then(() => reply({ type: 'result', id: m.id, result: 'playing' }),
                   () => reply({ type: 'result', id: m.id, result: 'unsupported' }));
               } else { v.pause(); reply({ type: 'result', id: m.id, result: 'paused' }); }
-            } else if (m.command === 'backward' || m.command === 'forward') {
+            } else if (m.command === 'canSeek') {
+              reply({ type: 'result', id: m.id, result: v.seekable.length > 0 ? 'seekable' : 'unsupported' });
+            } else if (['backward', 'forward', 'backward15', 'forward15'].includes(m.command)) {
               if (!Number.isFinite(v.currentTime) || !v.seekable.length) throw Error('not seekable');
               const start = v.seekable.start(0), end = v.seekable.end(v.seekable.length - 1);
-              v.currentTime = Math.max(start, Math.min(end, v.currentTime + (m.command === 'forward' ? 10 : -10)));
+              const seconds = m.command.endsWith('15') ? 15 : 10;
+              const offset = m.command.startsWith('forward') ? seconds : -seconds;
+              v.currentTime = Math.max(start, Math.min(end, v.currentTime + offset));
               reply({ type: 'result', id: m.id, result: 'seeked' });
             } else reply({ type: 'result', id: m.id, result: 'unsupported' });
           } catch (_) { reply({ type: 'result', id: m.id, result: 'unsupported' }); }
         } else if (m.type === 'result' && window === window.top) {
           const p = pending.get(m.id);
           if (p && p.best && e.source === p.best.source &&
-              ['none', 'playing', 'paused', 'seeked', 'unsupported'].includes(m.result)) p.finish(m.result);
+              ['none', 'playing', 'paused', 'seeked', 'seekable', 'unsupported'].includes(m.result)) p.finish(m.result);
         }
       });
       if (window === window.top) {
         window.__macTVPlayback = command => {
-          if (!['toggle', 'forward', 'backward'].includes(command)) return Promise.resolve('unsupported');
+          if (!['toggle', 'forward', 'backward', 'forward15', 'backward15', 'canSeek'].includes(command)) return Promise.resolve('unsupported');
           const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
           return new Promise(resolve => {
             let done = false;

@@ -22,10 +22,13 @@
       <div class="status" hidden><span class="dot" id="dot"></span><span id="status"></span></div>
     </div>
     <div class="actions">
+      <button type="button" class="round" id="open-brightness" aria-label="화면 밝기" aria-haspopup="dialog" aria-controls="power-sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button>
+      <button type="button" class="round" id="app-fullscreen" aria-label="앱 전체 화면" aria-describedby="app-fullscreen-msg" aria-pressed="false" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M9 21H3v-6m12 6h6v-6"/></svg></button>
       <button class="round" id="open-apps" aria-label="앱"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
       <button class="round" id="open-power" aria-label="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </header>
+  <p class="note err" id="app-fullscreen-msg" role="status" hidden></p>
 
   <p class="note" id="guest-note">게스트 리모컨 · 재생 조작만 가능</p>
   <div class="tabs" role="tablist" aria-label="리모컨 모드">
@@ -49,10 +52,10 @@
     <button class="key home" data-a="home" aria-label="홈"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg><span>홈</span></button>
     <button class="key primary" data-a="playpause" data-h="tap" aria-label="재생 또는 일시 정지"><svg viewBox="0 0 24 24" fill="#000"><path d="M3 5v14l8-7z"/><rect x="14" y="5" width="3" height="14" rx="1"/><rect x="19" y="5" width="3" height="14" rx="1"/></svg></button>
     <button class="key" data-a="mute" aria-label="음소거"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>
-    <button class="key" data-a="rewind" aria-label="10초 뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6v12l-8-6z"/><path d="M21 6v12l-8-6z"/></svg></button>
+    <button class="key" data-a="rewind" data-seek="rewind" aria-label="10초 뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6v12l-8-6z"/><path d="M21 6v12l-8-6z"/></svg><span class="seek-seconds" aria-hidden="true" hidden>15초</span></button>
     <button class="key" data-a="voldown" aria-label="음량 낮추기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 12h5"/></svg></button>
     <button class="key" data-a="volup" aria-label="음량 높이기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 12h5M18.5 9.5v5"/></svg></button>
-    <button class="key" data-a="forward" aria-label="10초 앞으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6v12l8-6z"/><path d="M3 6v12l8-6z"/></svg></button>
+    <button class="key" data-a="forward" data-seek="forward" aria-label="10초 앞으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6v12l8-6z"/><path d="M3 6v12l8-6z"/></svg><span class="seek-seconds" aria-hidden="true" hidden>15초</span></button>
   </div>
 
   <div id="browser-controls" class="browser-controls" hidden aria-label="브라우저 조작">
@@ -72,25 +75,32 @@
     <p class="note err" id="iina-error" role="status" aria-live="polite" hidden></p>
   </div>
 
-  <button class="row-btn text-tools" id="open-text" aria-label="웹사이트 열기 또는 TV에서 입력">웹사이트 열기 또는 입력</button>
+  <div class="text-tools">
+    <button type="button" class="row-btn" id="open-text" aria-haspopup="dialog" aria-controls="text-sheet">TV에서 입력</button>
+    <button type="button" class="row-btn" id="open-address" aria-haspopup="dialog" aria-controls="address-sheet">웹사이트 열기</button>
+  </div>
 </main>
 
-<div class="scrim" id="text-sheet">
-  <div class="sheet" role="dialog" aria-modal="true" aria-label="웹사이트 열기 또는 TV에서 입력">
-    <div class="sheet-head"><span>웹사이트 및 키보드</span><div><button class="pill" data-close>완료</button></div></div>
-    <div class="group-label">웹사이트 열기</div>
-  <form class="type website-form" id="open-website" autocomplete="off">
-    <input id="website-address" type="text" inputmode="url" placeholder="웹사이트 주소 입력…" aria-label="웹사이트 주소" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button type="submit" id="website-go">열기</button>
-  </form>
-  <p class="note err" id="website-open-error" role="status" aria-live="polite" hidden></p>
+<div class="scrim input-scrim" id="address-sheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="웹사이트 열기">
+    <div class="sheet-head"><span>웹사이트 열기</span><button type="button" class="pill" data-close>닫기</button></div>
+    <form class="type" id="open-website" autocomplete="off">
+      <input id="website-address" type="text" inputmode="url" placeholder="웹사이트 주소 입력…" aria-label="웹사이트 주소" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button type="submit" id="website-go">열기</button>
+    </form>
+    <p class="note err" id="website-open-error" role="status" aria-live="polite" hidden></p>
+  </div>
+</div>
 
-  <div class="group-label">TV에서 입력</div>
-  <form class="type" id="type" autocomplete="off">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
-    <input id="typed" placeholder="TV에 보낼 텍스트 입력…" aria-label="TV에서 입력" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button type="button" data-a="backspace" aria-label="지우기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8l-6 7 6 7h13z"/><path d="M17 9l-6 6M11 9l6 6"/></svg></button>
-  </form>
+<div class="scrim input-scrim" id="text-sheet">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="TV에서 입력">
+    <div class="sheet-head"><span>TV에서 입력</span><button type="button" class="pill" data-close>닫기</button></div>
+    <form class="type" id="type" autocomplete="off">
+      <input id="typed" placeholder="TV에 보낼 텍스트 입력…" aria-label="TV에서 입력" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button type="button" data-a="backspace" aria-label="TV에서 한 글자 지우기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8l-6 7 6 7h13z"/><path d="M17 9l-6 6M11 9l6 6"/></svg></button>
+      <button type="submit" id="type-done" aria-label="보내기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+    </form>
+    <p class="note err" id="type-error" role="status" aria-live="polite" hidden></p>
   </div>
 </div>
 
@@ -222,7 +232,7 @@
           <small id="speaker-msg" role="status" hidden></small>
         </div>
       </div>
-      <div class="section-label" id="brightness-label">밝기</div>
+      <div class="section-label" id="brightness-label" tabindex="-1">밝기</div>
       <p class="footnote" id="brightness-help">단계별 버튼을 누르거나 슬라이더를 길게 누른 뒤 끌어 밝기를 세밀하게 조절하세요.</p>
       <div class="group" id="display-brightness" role="group" aria-labelledby="brightness-label"></div>
       <p class="footnote" id="brightness-msg" role="status" hidden></p>
