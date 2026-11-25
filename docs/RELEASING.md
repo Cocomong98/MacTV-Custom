@@ -10,7 +10,7 @@
 
 `./build.sh --release`로 빌드하는 공개판의 표시 이름은 **CouchDial**이다. 공개판은 자체 색상 타일과 일반 YouTube 웹을 사용한다. `./build.sh --local`은 해당 Mac에 보관한 별도 입력으로 `CouchDial Local.app`을 빌드한다. 개인용 입력과 산출물은 Git 추적에서 제외하며, GitHub Releases와 Homebrew에는 공개판만 사용한다.
 
-공개 DMG 이름은 `CouchDial-<버전>.dmg`이다. 현재 게시된 `0.2.0`의 Cask URL은 기존 DMG를 가리킨다. 새 릴리스가 게시되면 기존 Cask 토큰에서 새 DMG URL과 버전·체크섬을 함께 갱신한다. 앱 번들 파일명 `MacTV Custom.app`, 공개판 번들 ID와 기존 데이터 경로는 업그레이드 비교를 위해 유지한다.
+공개 DMG 이름은 `CouchDial-<버전>.dmg`이다. `0.3.0`부터 기존 Cask 토큰을 CouchDial DMG에 연결한다. 다음 릴리스가 게시되면 같은 토큰에서 DMG URL과 버전·체크섬을 함께 갱신한다. 앱 번들 파일명 `MacTV Custom.app`, 공개판 번들 ID와 기존 데이터 경로는 업그레이드 비교를 위해 유지한다.
 
 ## 배포용 서명
 
