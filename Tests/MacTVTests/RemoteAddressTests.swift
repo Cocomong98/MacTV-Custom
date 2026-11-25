@@ -49,7 +49,7 @@ struct RemoteAddressTests {
         #expect(text.hasSuffix("\r\n\r\n"))
     }
 
-    @Test func theWifiLinkUsesTheMacsNameWithTheIPToType() throws {
+    @Test func theWifiLinkStartsAtTheIPAndKeepsTheMacsNameForReconnect() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let folder = root.appendingPathComponent("work/tests/\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -57,12 +57,16 @@ struct RemoteAddressTests {
         let tv = TVController(library: AppLibrary(folder: folder))
         tv.remotePort = 18765
         // Build machines may have no network.
-        guard let ip = LAN.ipv4(), let name = LAN.bonjourName() else { return }
+        guard let ip = LAN.ipv4() else { return }
         let wifi = try #require(tv.remoteLinks.first { $0.label == "Same Wi-Fi" })
-        #expect(wifi.address == "http://\(name):18765")
-        #expect(wifi.fallback == "\(ip):18765")
+        let guest = try #require(tv.remoteGuestLinks.first { $0.label == "Same Wi-Fi" })
+        #expect(wifi.address == "http://\(ip):18765")
+        #expect(guest.address == wifi.address)
+        #expect(wifi.qr != nil && guest.qr != nil)
+        #expect(tv.remoteCoordinator.origins.contains(wifi.address))
+        guard let name = LAN.bonjourName() else { return }
         #expect(tv.remoteCoordinator.origins.contains("http://\(name):18765"))
-        #expect(tv.remoteCoordinator.origins.contains("http://\(ip):18765"))
+        #expect(tv.remoteCoordinator.homeOrigin == "http://\(name):18765")
         #expect(name.hasSuffix(".local"))
         #expect(name == name.lowercased())
     }

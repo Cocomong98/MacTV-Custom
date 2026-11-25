@@ -240,9 +240,7 @@ struct SetupScreen: View {
                                 .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                         }
                         Text(link.displayLabel).font(.tv(.caption2)).opacity(0.8)
-                        if let fallback = link.fallback {
-                            Text("또는 \(fallback) 열기").font(.tv(.caption2)).monospacedDigit().opacity(0.5)
-                        }
+                        Text(link.address).font(.tv(.caption2)).monospacedDigit().opacity(0.7)
                     }
                 }
             }
@@ -258,6 +256,10 @@ struct SetupScreen: View {
                 }
             }
             .animation(Motion.appear, value: flow.phoneConnected)
+            if !flow.phoneConnected && !tv.remoteLinks.isEmpty {
+                Text("직접 연결할 때는 Safari에서 QR 아래 주소를 열고 연결 코드 \(tv.remoteToken)를 입력하세요.")
+                    .font(.tv(.caption2)).monospacedDigit().opacity(0.7)
+            }
             Text("같은 Wi-Fi에 연결하세요. 서로 연결할 수 없는 네트워크에서는 Tailscale 코드를 사용할 수 있습니다.")
                 .font(.tv(.caption2)).opacity(0.55)
             ShelfButton(title: flow.phoneConnected ? "계속" : "나중에 연결", focused: true, glass: false) { tv.advanceSetup() }

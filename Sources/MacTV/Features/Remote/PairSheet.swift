@@ -7,7 +7,6 @@ struct PairSheet: View {
     var body: some View {
         let links = tv.pairingGuest ? tv.remoteGuestLinks : tv.remoteLinks
         HStack(alignment: .center, spacing: 52) {
-            // Top-aligned, so the codes stay level when one has an address to type under it.
             HStack(alignment: .top, spacing: 24) {
                 if links.isEmpty {
                     RoundedRectangle(cornerRadius: 28).fill(.white.opacity(0.1))
@@ -24,15 +23,13 @@ struct PairSheet: View {
                                 .background(.white, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                         }
                         Text(link.displayLabel).font(.tv(.caption2)).opacity(0.8)
-                        if let fallback = link.fallback {
-                            Text("또는 \(fallback) 열기").font(.tv(.caption2)).monospacedDigit().opacity(0.5)
-                        }
+                        Text(link.address).font(.tv(.caption2)).monospacedDigit().opacity(0.7)
                     }
                 }
             }
             VStack(alignment: .leading, spacing: 18) {
                 Text("아이폰을 리모컨으로 연결").font(.tv(.title3, emphasized: true))
-                Text("아이폰 카메라로 QR 코드를 스캔하세요. 연결 코드 \(tv.pairingGuest ? tv.remoteGuestToken : tv.remoteToken)")
+                Text("QR을 스캔하거나 Safari에서 QR 아래 주소를 열고 연결 코드를 입력하세요.\n연결 코드 \(tv.pairingGuest ? tv.remoteGuestToken : tv.remoteToken)")
                     .font(.tv(.caption2)).monospacedDigit().foregroundStyle(.white.opacity(0.7))
                 VStack(spacing: 10) {
                     pairRow("리모컨 권한", value: tv.pairingGuest ? "게스트 · 24시간" : "전체",

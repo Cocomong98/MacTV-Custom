@@ -14,6 +14,8 @@ README의 YouTube 광고 필터 설치 안내와 원본 화면 이미지 삽입�
 
 **CouchDial 0.3.0**을 GitHub Releases에 게시했다. 기존 Homebrew Cask는 새 DMG와 SHA‑256을 사용한다. 게시된 두 파일이 로컬 검증본과 일치하는 것을 확인했다. macOS 실행 승인 승계와 아이폰 실기기 확인은 남아 있다. [CouchDial 0.3.0](https://github.com/Cocomong98/MacTV-Custom/releases/tag/v0.3.0)
 
+0.3.0 DMG는 사용자 기기에서 정상 동작했고, 다른 기기에서는 Safari가 첫 연결의 `.local` 주소에서 응답을 받지 못했다. `add-remote-ip-pairing`에서 첫 연결 QR을 IPv4 주소로 바꾼 테스트 빌드를 만들었다. 문제가 발생한 기기에서 새 QR 또는 기존판의 숫자 IP로 재검증할 예정이다.
+
 Mac의 설정·제어 센터·팝업과 아이폰 웹 리모컨의 설정·조작 안내를 한국어로 정리했다. 홈에서 순환하는 작품 이미지의 출처와 화면 보호기의 차이는 [UI 명세](UI_SPEC.md)에 기록했다.
 
 ## 0. 원본 확보와 무수정 기준선
