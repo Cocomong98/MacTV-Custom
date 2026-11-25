@@ -119,7 +119,7 @@ extension SettingsPanel.Section {
         case .apps: [.addApp, .arrangeApps]
         case .dedicatedTV: [.dedicatedTV, .preferredDisplay, .launchAtLogin]
         case .power: [.keepMacAwake, .lidOverride, .screenOff, .sleepMac]
-        case .about: [.version] + (LocalBuild.isCustom ? [] : [.update, .autoUpdate])
+        case .about: [.version] + (LocalBuild.isPublicEdition ? [.update] : (LocalBuild.isCustom ? [] : [.update, .autoUpdate]))
             + [.source, .report] + (Analytics.available ? [.analytics] : [])
         case .profiles, .movies: []
         }
@@ -439,6 +439,13 @@ struct SettingsSheet: View {
                     }
                 }
             }
+            if panel.section == .about, let notes = updater.releaseNotes {
+                Text(verbatim: notes)
+                    .font(.tv(.caption2))
+                    .foregroundStyle(TVLayout.secondaryText)
+                    .lineLimit(4)
+                    .padding(.horizontal, 8)
+            }
         }
     }
 
@@ -525,11 +532,11 @@ struct SettingsSheet: View {
         case .update:
             switch updater.state {
             case .failed(let message):
-                title("소프트웨어 업데이트")
+                title("다시 확인")
                 value(message)
-            case .available(let version, _):
-                title("소프트웨어 업데이트")
-                value("\(version) 설치")
+            case .available(let release):
+                title(LocalBuild.isPublicEdition ? "업데이트 및 재시작" : "소프트웨어 업데이트")
+                value("\(release.version) 설치")
             case .ready(let version, _):
                 title("소프트웨어 업데이트")
                 value("\(version) 설치")
@@ -543,11 +550,11 @@ struct SettingsSheet: View {
                 title("소프트웨어 업데이트")
                 value("확인 중…")
             case .upToDate:
-                title("소프트웨어 업데이트")
+                title("업데이트 확인")
                 value("최신 버전")
             case .idle:
-                title("소프트웨어 업데이트")
-                value("지금 확인")
+                title("업데이트 확인")
+                chevron
             }
         case .autoUpdate:
             title("자동 업데이트")

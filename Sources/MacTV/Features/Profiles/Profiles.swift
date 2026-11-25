@@ -109,6 +109,7 @@ extension TVController {
         defer { showStartupPairingIfReady() }
         guard id != profile.id else { return }
         goHome()
+        playbackCoordinator.discardSuspendedWebPlaybacks()
         profiles.select(id)
         profile = profiles.current
         library = AppLibrary(profileID: profile.id, folder: library.storageFolder)

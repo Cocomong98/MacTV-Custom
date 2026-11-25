@@ -9,6 +9,7 @@ final class TVMode {
     private weak var tv: TVController?
     private var normalFrame: NSRect?
     private var transitioning = false
+    private var manuallyWindowed = false
     private var transitionGeneration = 0
     private var pendingDedicatedEntry = false
     private var relocationPending = false
@@ -160,7 +161,7 @@ final class TVMode {
         }
         manualTargetID = displayID
         fullscreenMoveRetries = 0
-        manualRestoreFullscreen = manualRestoreFullscreen || window.styleMask.contains(.fullScreen) || enabled
+        manualRestoreFullscreen = manualRestoreFullscreen || window.styleMask.contains(.fullScreen) || (enabled && !manuallyWindowed)
         manualDedicatedEntry = manualDedicatedEntry || enabled
         tv?.objectWillChange.send()
         performManualMove()
@@ -259,6 +260,7 @@ final class TVMode {
 
     func setEnabled(_ value: Bool) {
         guard value != enabled else { return }
+        manuallyWindowed = false
         preferences.dedicatedTVMode = value
         if value {
             normalFrame = window.frame
@@ -270,6 +272,20 @@ final class TVMode {
         } else if !transitioning {
             restoreNormalFrame()
         }
+    }
+
+    var fullscreenChanging: Bool { transitioning || movingWindow }
+
+    @discardableResult
+    func setWindowFullscreen(_ value: Bool) -> Bool {
+        guard !fullscreenChanging else { return false }
+        let fullscreen = window.styleMask.contains(.fullScreen)
+        manuallyWindowed = !value && enabled
+        guard value != fullscreen else { return true }
+        relocationPending = false
+        transitioning = true
+        toggleFullscreenWithWatchdog()
+        return true
     }
 
     func start() {
@@ -311,7 +327,7 @@ final class TVMode {
     }
 
     private func reconcileScreen() {
-        guard enabled, let target = targetScreen else { return }
+        guard enabled, !manuallyWindowed, let target = targetScreen else { return }
         if transitioning || movingWindow {
             relocationPending = true
             return
@@ -397,7 +413,7 @@ final class TVMode {
             }
             return
         }
-        if enabled {
+        if enabled && !manuallyWindowed {
             // macOS can exit full screen during display removal. Keep the user's
             // setting and recover on the available screen until they choose Exit TV mode.
             relocationPending = false
@@ -432,6 +448,8 @@ extension TVController {
     func handlePairing(_ command: RemoteCommand) { tvMode?.handlePairing(command) }
     @discardableResult func selectTVDisplay(id: String) -> Bool { tvMode?.chooseDisplay(id: id) ?? false }
     var dedicatedTVMode: Bool { tvMode?.enabled ?? false }
+    var tvFullscreenChanging: Bool { tvMode?.fullscreenChanging ?? false }
+    @discardableResult func setTVWindowFullscreen(_ value: Bool) -> Bool { tvMode?.setWindowFullscreen(value) ?? false }
     var preferredTVDisplayName: String { tvMode?.preferredName ?? "자동" }
     var launchAtLogin: Bool { tvMode?.loginEnabled ?? false }
     var loginNeedsApproval: Bool { tvMode?.loginStatus == .requiresApproval }
