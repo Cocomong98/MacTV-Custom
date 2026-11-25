@@ -239,7 +239,7 @@ extension TVController {
                 switch shares.status[share.id] {
                 case .connected:
                     self.movies?.shareForm = nil
-                    self.showToast("Connected to \(share.name). Its movies are on the way.")
+                    self.showToast("\(share.name)에 연결했습니다. 동영상을 불러오는 중입니다.")
                     return
                 case .offline(let reason):
                     self.movies?.shareForm?.connecting = false
@@ -269,7 +269,7 @@ extension TVController {
             } else {
                 self.movies?.shareForm = nil
                 let name = jellyfin.servers.last?.name ?? "the server"
-                self.showToast("Signed in to \(name). Its movies are on the way.")
+                self.showToast("\(name)에 로그인했습니다. 동영상을 불러오는 중입니다.")
             }
         }
     }
@@ -738,8 +738,9 @@ struct MoviePlayerView: View {
             .allowsHitTesting(false)
 
             PlayerButton(symbol: "chevron.backward", size: 72, action: { player.onClose?() })
+                .accessibilityLabel("동영상 닫기")
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(.leading, 96)
+                .padding(.leading, TVLayout.edge)
                 .padding(.top, 64)
 
             GlassGroup(spacing: 0) {
@@ -761,7 +762,7 @@ struct MoviePlayerView: View {
                             .font(.tv(.headline, emphasized: true))
                             .lineLimit(1)
                         if !details.isEmpty {
-                            Text(details).font(.tv(.caption2)).opacity(0.7)
+                            Text(details).font(.tv(.caption2)).foregroundStyle(TVLayout.secondaryText)
                         }
                     }
                     .shadow(color: .black.opacity(0.5), radius: 8)
@@ -789,7 +790,7 @@ struct MoviePlayerView: View {
                 .monospacedDigit()
                 .shadow(color: .black.opacity(0.5), radius: 6)
             }
-            .padding(.horizontal, 110)
+            .padding(.horizontal, TVLayout.edge)
             .padding(.bottom, 64)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         }

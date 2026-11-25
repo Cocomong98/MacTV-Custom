@@ -317,7 +317,7 @@ final class RemoteServer {
         }
         if request.method == "GET", request.path == "/manifest.webmanifest" {
             let manifest: [String: Any] = [
-                "name": "Mac TV Remote", "short_name": "Mac TV", "display": "standalone",
+                "name": "\(LocalBuild.displayName) 리모컨", "short_name": LocalBuild.displayName, "display": "standalone",
                 "background_color": "#0a0b0e", "theme_color": "#0a0b0e", "start_url": "/", "id": "/", "scope": "/",
                 "icons": [["src": "/appicon.png", "sizes": "1024x1024", "type": "image/png"]],
             ]

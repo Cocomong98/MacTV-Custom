@@ -192,7 +192,7 @@ struct SetupScreen: View {
                 .resizable()
                 .frame(width: 200, height: 200)
                 .shadow(color: .black.opacity(0.5), radius: 30, y: 16)
-            title("MacTV Custom에 오신 것을 환영합니다")
+            title("CouchDial에 오신 것을 환영합니다")
             subtitle("맥북에서 스트리밍을 보고, 아이폰으로 조작할 수 있습니다. 설정에는 약 1분이 걸립니다.")
             ShelfButton(title: "시작하기", focused: true, glass: false) { tv.activateSetup(0) }
                 .padding(.top, 20)
@@ -270,7 +270,7 @@ struct SetupScreen: View {
         VStack(spacing: 28) {
             Image(systemName: "chart.bar.xaxis")
                 .font(.system(size: 92, weight: .regular))
-            title("Mac TV 개선에 참여하시겠어요?")
+            title("CouchDial 개선에 참여하시겠어요?")
             subtitle("사용한 기능만 익명으로 공유합니다. 시청 기록은 공유하지 않습니다.")
             HStack(spacing: 24) {
                 ShelfButton(title: "공유", focused: flow.index == 0, glass: false) { tv.activateSetup(0) }
@@ -287,7 +287,7 @@ struct SetupScreen: View {
                 .foregroundStyle(Color(hex: "#3DDC84"))
             title("설정 완료")
             VStack(alignment: .leading, spacing: 22) {
-                tip("person.crop.circle", "스트리밍 서비스에 로그인", "MacTV Custom은 로그인 상태를 기억합니다. 맥북이나 아이폰 리모컨의 키보드로 입력할 수 있습니다.")
+                tip("person.crop.circle", "스트리밍 서비스에 로그인", "CouchDial은 로그인 상태를 기억합니다. 맥북이나 아이폰 리모컨의 키보드로 입력할 수 있습니다.")
                 tip("house", "언제든 홈으로 돌아가기", "아이폰 리모컨의 홈 버튼, 컨트롤러의 메뉴 버튼 또는 ⌘⇧H를 누르세요.")
                 tip("arrow.up.left.and.arrow.down.right", "전체 화면으로 보기", "창의 초록색 버튼을 누르거나 ⌃⌘F를 누르세요.")
                 tip("gearshape", "설정에서 변경하기", "설정에서 리모컨 QR 코드, 취침 타이머, 전원 옵션을 찾을 수 있습니다.")
@@ -344,7 +344,8 @@ struct SetupScreen: View {
                 }
             Text(service.name)
                 .font(.tv(.caption2))
-                .opacity(focused ? 1 : 0.7)
+                .opacity(service.tileSymbol != nil ? 0 : focused ? 1 : 0.7)
+                .accessibilityHidden(service.tileSymbol != nil)
         }
         .contentShape(Rectangle())
         .onTapGesture { tv.activateSetup(index) }

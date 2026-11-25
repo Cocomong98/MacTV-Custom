@@ -114,7 +114,7 @@ extension TVController {
         library = AppLibrary(profileID: profile.id, folder: library.storageFolder)
         reloadServices()
         setFocus(.app(0))
-        showToast("Hi, \(profile.name)")
+        showToast("\(profile.name)님, 안녕하세요")
     }
 
     func handleProfiles(_ command: RemoteCommand) {
@@ -183,7 +183,7 @@ extension TVController {
                 let removed = all[index]
                 profiles.remove(removed.id)
                 if removed.id == profile.id { profile = profiles.current; library = AppLibrary(profileID: profile.id, folder: library.storageFolder); reloadServices() }
-                showToast("Removed \(removed.name)")
+                showToast("\(removed.name) 제거됨")
                 picker = ProfilePicker(index: max(0, index - 1))
             } else {
                 picker.confirmingRemove = true
@@ -246,7 +246,7 @@ struct ProfilesScreen: View {
                             .overlay(Image(systemName: "plus").font(.system(size: 64, weight: .medium)))
                             .frame(width: 200, height: 200)
                     } label: {
-                        Text("Add Profile")
+                        Text("프로필 추가")
                     }
                 }
                 removeButton(picker, all: all)
@@ -315,10 +315,10 @@ struct ProfilesScreen: View {
             .padding(.horizontal, 36)
             .frame(minWidth: 520, minHeight: 84)
             .tvPanel(in: Capsule())
-            Text("Type a name with the keyboard or the phone remote. Each profile has its own apps and stays signed in separately.")
+            Text("키보드나 휴대전화 리모컨에서 이름을 입력하세요. 프로필마다 앱과 로그인 상태를 따로 관리합니다.")
                 .font(.tv(.caption2)).foregroundStyle(.white.opacity(0.65))
                 .multilineTextAlignment(.center).frame(maxWidth: 820)
-            ShelfButton(title: "Create Profile", focused: !name.isEmpty, glass: false) { tv.handle(.select) }
+            ShelfButton(title: "프로필 만들기", focused: !name.isEmpty, glass: false) { tv.handle(.select) }
         }
     }
 }

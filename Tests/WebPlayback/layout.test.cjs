@@ -123,7 +123,7 @@ async function run() {
         return { label: button.textContent.trim(), width: rect.width, height: rect.height,
           displayed: getComputedStyle(button).display !== 'none', action: sentCommands[before] };
       })()`);
-      assert.equal(home.label, 'Home', `${label}: Home is visibly labeled`);
+      assert.equal(home.label, '홈', `${label}: Home is visibly labeled`);
       assert.ok(home.displayed && home.width >= 44 && home.height >= 44, `${label}: Home stays available`);
       assert.equal(home.action, 'home', `${label}: Home sends its command`);
       if (width === 320 && height === 568 && (mode === 'none' || mode === 'brave')) await screenshot(`320x568-${mode}.png`);
@@ -165,7 +165,7 @@ async function run() {
           track:{ left:rect.left, width:rect.width, y:rect.top + rect.height / 2 } };
       })()`);
       assert.ok(brightness.wasEditable && brightness.unavailableDisabled, 'only confirmed brightness is editable');
-      assert.equal(brightness.label, 'LG HDR 4K (BetterDisplay) brightness');
+      assert.equal(brightness.label, 'LG HDR 4K (BetterDisplay) 밝기');
       assert.deepEqual(brightness.presetNames, ['0%', '25%', '50%', '75%', '100%']);
       assert.equal(brightness.selected, '25%');
       assert.deepEqual(brightness.writes, [{ id:'lg', value:25, method:'betterDisplay' }]);
@@ -223,7 +223,7 @@ async function run() {
         const unavailable = { disabled:range.disabled, name:document.querySelector('#speaker-name').textContent, message:message.textContent };
         remoteOffline = true;
         await refresh();
-        const offline = range.disabled && amount.textContent === '—' && message.textContent.includes('disconnected') &&
+        const offline = range.disabled && amount.textContent === '—' && message.textContent === 'Mac 연결이 끊겼습니다.' &&
           [...document.querySelectorAll('#display-brightness input')].every(input => input.disabled);
         remoteOffline = false;
         testState.speakerVolume = { id:13, name:'MacBook Air Speakers', value:33, muted:false };
@@ -238,7 +238,7 @@ async function run() {
       assert.equal(sound.writesDuringDrag, 0);
       assert.equal(sound.confirmed, '64%');
       assert.deepEqual(sound.writes, [{ id:13, value:64 }]);
-      assert.equal(sound.muted, 'Muted');
+      assert.equal(sound.muted, '음소거');
       assert.ok(sound.unavailable.disabled && sound.unavailable.name.length > 40 && sound.unavailable.message);
       assert.ok(sound.offline && sound.reconnected);
       await evaluate(`document.querySelector('#power-sheet [data-close]').click()`);

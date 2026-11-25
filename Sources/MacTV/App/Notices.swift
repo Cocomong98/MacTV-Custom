@@ -39,7 +39,7 @@ struct NoticesOverlay: View {
                 TVCanvas {
                     GlassGroup { ControllerBanner(notice: notice).tvGlassTransition() }
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .padding(.trailing, 96)
+                        .padding(.trailing, TVLayout.edge)
                         .padding(.top, 43)
                 }
                 .ignoresSafeArea()
@@ -49,11 +49,14 @@ struct NoticesOverlay: View {
             TVCanvas {
                 GlassGroup {
                     if let toast = notices.toast {
-                        Text(toast)
-                            .font(.tv(.callout))
+                        Label(toast, systemImage: "info.circle")
+                            .font(.tv(.caption1, emphasized: true))
                             .foregroundStyle(.white)
-                            .padding(.horizontal, 34).padding(.vertical, 18)
-                            .tvGlass(in: Capsule())
+                            .lineLimit(3)
+                            .frame(maxWidth: 950, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 30).padding(.vertical, 20)
+                            .tvGlass(in: RoundedRectangle(cornerRadius: TVLayout.tileRadius), tint: .black.opacity(0.3))
                             .tvGlassTransition()
                     }
                 }

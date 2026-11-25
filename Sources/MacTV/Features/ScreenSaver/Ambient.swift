@@ -3,7 +3,7 @@ import ImageIO
 import QuartzCore
 import SwiftUI
 
-// Slow, always-on motion (the Top Shelf's drift, the screen saver) runs as Core Animation in the
+// Slow, always-on screen saver motion runs as Core Animation in the
 // render server. Driving it from SwiftUI (TimelineView) recomputed and redrew the whole screen up to
 // 30 times a second in Mac TV's own process, glass included, for movement no one could see per frame.
 
@@ -38,78 +38,6 @@ enum ScreenImages {
     }
 }
 
-/// A picture filling its frame that slowly zooms and drifts left (Apple TV's Top Shelf), from `since`.
-struct DriftingPicture: NSViewRepresentable {
-    let image: NSImage
-    let since: Date
-    var zoom: CGFloat = 0.06
-    var drift: CGFloat = -18
-    var duration: TimeInterval = 10
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func makeNSView(context: Context) -> LayerView {
-        let view = LayerView()
-        // The decoded bitmap itself: handing the layer an NSImage makes Core Animation keep its own copy.
-        view.picture.contents = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
-        startDrift(on: view.picture)
-        return view
-    }
-
-    private func startDrift(on picture: CALayer) {
-        if !reduceMotion {
-            let start = CATransform3DIdentity
-            let end = CATransform3DTranslate(CATransform3DMakeScale(1 + zoom, 1 + zoom, 1), drift, 0, 0)
-            let animation = CABasicAnimation(keyPath: "transform")
-            animation.fromValue = start
-            animation.toValue = end
-            animation.duration = duration
-            // Picks up where the drift would be if this view was made part-way through.
-            animation.beginTime = CACurrentMediaTime() - min(Date().timeIntervalSince(since), duration)
-            animation.timingFunction = CAMediaTimingFunction(name: .linear)
-            animation.fillMode = .both
-            animation.isRemovedOnCompletion = false
-            picture.add(animation, forKey: "drift")
-        }
-    }
-
-    func updateNSView(_ view: LayerView, context: Context) {
-        let bitmap = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
-        guard let bitmap, view.picture.contents.map({ $0 as AnyObject }) !== bitmap else { return }
-        // The next show: Core Animation cross-fades and starts the drift again, so SwiftUI redraws nothing.
-        let fade = CATransition()
-        fade.type = .fade
-        fade.duration = 1.4
-        view.picture.add(fade, forKey: "fade")
-        view.picture.contents = bitmap
-        startDrift(on: view.picture)
-    }
-
-    /// A layer-hosting view whose picture layer always fills it.
-    final class LayerView: NSView {
-        let picture = CALayer()
-
-        init() {
-            super.init(frame: .zero)
-            layer = CALayer()
-            wantsLayer = true
-            layer?.masksToBounds = true
-            picture.contentsGravity = .resizeAspectFill
-            layer?.addSublayer(picture)
-        }
-
-        required init?(coder: NSCoder) { fatalError() }
-
-        override func layout() {
-            super.layout()
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            picture.bounds = bounds
-            picture.position = CGPoint(x: bounds.midX, y: bounds.midY)
-            CATransaction.commit()
-        }
-    }
-}
-
 /// The photo screen saver: each picture slowly zooms, then cross-fades into the next. A timer swaps
 /// pictures every few seconds; everything in between is Core Animation.
 struct Slideshow: NSViewRepresentable {
@@ -119,15 +47,17 @@ struct Slideshow: NSViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(files: files) }
 
-    func makeNSView(context: Context) -> DriftingPicture.LayerView {
-        let view = DriftingPicture.LayerView()
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        view.wantsLayer = true
+        view.layer?.masksToBounds = true
         context.coordinator.start(in: view)
         return view
     }
 
-    func updateNSView(_ view: DriftingPicture.LayerView, context: Context) {}
+    func updateNSView(_ view: NSView, context: Context) {}
 
-    static func dismantleNSView(_ view: DriftingPicture.LayerView, coordinator: Coordinator) {
+    static func dismantleNSView(_ view: NSView, coordinator: Coordinator) {
         coordinator.stop()
     }
 
@@ -175,7 +105,7 @@ struct Slideshow: NSViewRepresentable {
             }
             host.addSublayer(slide)
             // Drop slides that are now fully covered.
-            let old = (host.sublayers ?? []).filter { $0 !== slide && $0 !== (view as? DriftingPicture.LayerView)?.picture }
+            let old = (host.sublayers ?? []).filter { $0 !== slide }
             DispatchQueue.main.asyncAfter(deadline: .now() + Slideshow.fade + 0.2) { old.forEach { $0.removeFromSuperlayer() } }
         }
     }

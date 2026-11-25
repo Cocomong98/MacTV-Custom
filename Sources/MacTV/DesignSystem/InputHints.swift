@@ -72,19 +72,19 @@ enum HintSet: Equatable {
     var actions: [HintAction] {
         switch self {
         case .list:
-            [.moveVertical("Choose"), .select("Select"), .back("Close")]
+            [.moveVertical("이동"), .select("선택"), .back("닫기")]
         case .listAdjust:
-            [.moveVertical("Choose"), .moveHorizontal("Change"), .select("Select"), .back("Close")]
+            [.moveVertical("이동"), .moveHorizontal("변경"), .select("선택"), .back("닫기")]
         case .form:
-            [.moveVertical("Choose"), .select("Select"), .back("Close")]
+            [.moveVertical("이동"), .select("선택"), .back("닫기")]
         case .arrange:
-            [.moveVertical("Choose app"), .moveHorizontal("Choose action"), .select("Apply"), .back("Close")]
+            [.moveVertical("앱 선택"), .moveHorizontal("동작 선택"), .select("적용"), .back("닫기")]
         case .chooser:
-            [.select("Select"), .back("Close")]
+            [.select("선택"), .back("닫기")]
         case .pick:
-            [.moveHorizontal("Choose"), .select("Select")]
+            [.moveHorizontal("이동"), .select("선택")]
         case .info:
-            [.back("Close")]
+            [.back("닫기")]
         case .custom(let actions):
             actions
         }

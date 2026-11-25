@@ -36,9 +36,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          name="MacTV-Custom-${GITHUB_REF_NAME#v}.dmg"
+          name="CouchDial-${GITHUB_REF_NAME#v}.dmg"
           cd "$RUNNER_TEMP"
           gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
             --pattern "$name" --pattern "$name.sha256"
           shasum -a 256 -c "$name.sha256"
           hdiutil verify "$name"
+          mount_dir=$(mktemp -d "$RUNNER_TEMP/couchdial-dmg.XXXXXXXX")
+          hdiutil attach "$name" -readonly -nobrowse -quiet -mountpoint "$mount_dir"
+          trap 'hdiutil detach "$mount_dir" -quiet; rmdir "$mount_dir"' EXIT
+          app="$mount_dir/MacTV Custom.app"
+          plist="$app/Contents/Info.plist"
+          [[ "$(find "$mount_dir" -maxdepth 1 -name '*.app' -print | wc -l | tr -d ' ')" == 1 ]]
+          [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")" == local.couch.tv.custom ]]
+          [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$plist")" == CouchDial ]]
+          [[ ! -e "$app/Contents/Resources/Icons" ]]

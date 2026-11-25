@@ -18,7 +18,7 @@ jobs:
       - name: Test
         run: bash scripts/test-custom.sh
       - name: Build universal app
-        run: ./build.sh --custom
+        run: ./build.sh --release
       - name: Check signature and architectures
         run: |
           codesign --verify --deep --strict 'build/MacTV Custom.app'

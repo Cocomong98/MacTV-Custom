@@ -6,6 +6,12 @@
 - 배포 커밋을 `release`에 푸시하고 같은 커밋에 `vMAJOR.MINOR.PATCH` 태그를 붙인다. 서명용 Mac에서 아래 명령으로 만든 DMG와 SHA‑256을 같은 태그의 GitHub Releases에 게시한다. GitHub Actions는 게시된 두 파일의 체크섬과 DMG 형식을 검증한다.
 - DMG가 게시되면 `main`에 배포 커밋을 반영하고 `Casks/mactv-custom.rb`의 버전과 SHA‑256을 갱신한다. 이미 배포한 태그와 파일의 수정은 다음 버전에서 한다.
 
+## 공개판과 개인용 로컬판
+
+`./build.sh --release`로 빌드하는 공개판의 표시 이름은 **CouchDial**이다. 공개판은 자체 색상 타일과 일반 YouTube 웹을 사용한다. `./build.sh --local`은 해당 Mac에 보관한 별도 입력으로 `CouchDial Local.app`을 빌드한다. 개인용 입력과 산출물은 Git 추적에서 제외하며, GitHub Releases와 Homebrew에는 공개판만 사용한다.
+
+공개 DMG 이름은 `CouchDial-<버전>.dmg`이다. 현재 게시된 `0.2.0`의 Cask URL은 기존 DMG를 가리킨다. 새 릴리스가 게시되면 기존 Cask 토큰에서 새 DMG URL과 버전·체크섬을 함께 갱신한다. 앱 번들 파일명 `MacTV Custom.app`, 공개판 번들 ID와 기존 데이터 경로는 업그레이드 비교를 위해 유지한다.
+
 ## 배포용 서명
 
 `0.2.0`부터 같은 배포 인증서와 번들 ID `local.couch.tv.custom`을 사용한다. 인증서의 표시 이름이 같아도 새로 만들면 서명 요건이 달라진다. 서명은 배포용 Mac의 키체인에서 수행한다.

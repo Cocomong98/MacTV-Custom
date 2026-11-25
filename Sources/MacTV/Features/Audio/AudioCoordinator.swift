@@ -176,7 +176,7 @@ final class AudioCoordinator: ObservableObject {
         Log.audio.notice("Audio output switched to a \(DiagnosticReport.transportName(device.transport), privacy: .public) device")
         refreshDevices()
         refreshVolume()
-        tv?.showToast("Audio: \(device.name)")
+        tv?.showToast("오디오 출력 · \(device.name)")
     }
 
     // MARK: - Real-Time CoreAudio Listeners
@@ -375,15 +375,15 @@ struct AudioPickerSheet: View {
         let soundSliderRow = tv.audioDevices.count + 1
 
         VStack(alignment: .leading, spacing: 22) {
-            Text("Audio Output").font(.tv(.title3, emphasized: true))
+            Text("오디오 출력").font(.tv(.title3, emphasized: true))
 
-            Text("Choose where sound plays from this Mac. Connect AirPods in System Settings › Bluetooth.")
+            Text("Mac의 사운드 출력 장치를 선택하세요. AirPods는 시스템 설정 › Bluetooth에서 연결할 수 있습니다.")
                 .font(.tv(.caption1))
                 .foregroundStyle(.white.opacity(0.7))
 
             VStack(spacing: 12) {
                 if tv.audioDevices.isEmpty {
-                    Text("No audio output devices found")
+                    Text("연결된 오디오 출력 장치가 없습니다.")
                         .font(.tv(.callout))
                         .foregroundStyle(.white.opacity(0.55))
                         .frame(maxWidth: .infinity, minHeight: 80)
@@ -423,7 +423,7 @@ struct AudioPickerSheet: View {
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Volume")
+                Text("음량")
                     .font(.tv(.caption1, emphasized: true))
                     .foregroundStyle(.white.opacity(0.75))
 
@@ -433,7 +433,7 @@ struct AudioPickerSheet: View {
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Navigation Sounds")
+                Text("탐색 사운드")
                     .font(.tv(.caption1, emphasized: true))
                     .foregroundStyle(.white.opacity(0.75))
 
@@ -444,7 +444,7 @@ struct AudioPickerSheet: View {
 
             Group {
                 if panel.row == masterSliderRow {
-                    InputHintsBar(tv: tv, actions: [.moveHorizontal("Volume"), .select("Mute"), .back("Close")])
+                    InputHintsBar(tv: tv, actions: [.moveHorizontal("음량"), .select("Mute"), .back("Close")])
                 } else if panel.row == soundSliderRow {
                     InputHintsBar(tv: tv, actions: [.moveHorizontal("Sound effects"), .select("Mute"), .back("Close")])
                 } else {
@@ -524,7 +524,7 @@ struct AudioVolumeSlider: View {
                 }
                 .frame(height: 36)
 
-                Text(volume.muted ? "Muted" : "\(level)%")
+                Text(volume.muted ? "음소거" : "\(level)%")
                     .font(.tv(.caption1, emphasized: true))
                     .monospacedDigit()
                     .lineLimit(1)
@@ -532,7 +532,7 @@ struct AudioVolumeSlider: View {
                     .frame(minWidth: 80, alignment: .trailing)
                     .foregroundStyle(focused ? .white : .white.opacity(0.75))
             } else {
-                Text("Volume is set on the TV")
+                Text("TV에서 음량을 조절하세요.")
                     .font(.tv(.caption1))
                     .foregroundStyle(.white.opacity(0.6))
                 Spacer()
@@ -609,7 +609,7 @@ struct NavigationSoundSlider: View {
             }
             .frame(height: 36)
 
-            Text(feedback.isMuted ? "Muted" : "\(percent)%")
+            Text(feedback.isMuted ? "음소거" : "\(percent)%")
                 .font(.tv(.caption1, emphasized: true))
                 .monospacedDigit()
                 .lineLimit(1)

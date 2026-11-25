@@ -1,12 +1,12 @@
-# MacTV-Custom
+# CouchDial
 
-맥북에서 Apple TV처럼 스트리밍을 보고 아이폰을 리모컨으로 사용하는 macOS 앱입니다.
+맥북을 TV처럼 쓰고 아이폰으로 탐색과 재생을 조작하는 macOS 앱입니다.
 
 Arunprakaash가 만든 [Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22)를 기반으로 한다. 원본 커밋 `50c9fd90f2f9f373cfdb5aed1a6adac15b369051`과 Git 이력, [MIT 라이선스](LICENSE)를 보존한다.
 
 ## 다운로드
 
-[GitHub Releases](https://github.com/Cocomong98/MacTV-Custom/releases)에서 `MacTV-Custom-<버전>.dmg`를 받아 열고 **MacTV Custom.app**을 **Applications**로 끌어 놓습니다. `0.2.0`부터 같은 자체 서명 인증서로 배포합니다. 최초 실행에서 macOS의 확인 화면이 나오면 파일 출처와 체크섬을 확인한 뒤 Apple 안내를 따르세요. [Apple의 앱 열기 안내](https://support.apple.com/ko-kr/102445)
+[GitHub Releases](https://github.com/Cocomong98/MacTV-Custom/releases)에서 DMG를 받아 열고 앱을 **Applications**로 끌어 놓습니다. 새 배포 파일 이름은 `CouchDial-<버전>.dmg`입니다. 기존 Cask 업그레이드를 위해 앱 번들 파일명은 `MacTV Custom.app`을 사용합니다. `0.2.0`부터 같은 자체 서명 인증서로 배포합니다. 최초 실행에서 macOS의 확인 화면이 나오면 파일 출처와 체크섬을 확인한 뒤 Apple 안내를 따르세요. [Apple의 앱 열기 안내](https://support.apple.com/ko-kr/102445)
 
 ### Homebrew 설치
 
@@ -21,14 +21,14 @@ brew install --cask Cocomong98/mactv/mactv-custom
 
 1. `AGENTS.md`와 [로드맵](docs/ROADMAP.md)에서 현재 단계와 미검증 항목을 확인한다.
 2. 기준 버전은 원본 `v0.22` (`50c9fd90f2f9f373cfdb5aed1a6adac15b369051`)다. 공식 빌드와 테스트 절차는 [원본 기여 가이드](CONTRIBUTING.md)를 따른다.
-3. 프로젝트 루트에서 `./build.sh --custom`으로 `build/MacTV Custom.app`을 빌드한다. `open "build/MacTV Custom.app"`으로 실행한다.
+3. 프로젝트 루트에서 `./build.sh --release`으로 `build/MacTV Custom.app`을 빌드한다. `open "build/MacTV Custom.app"`으로 실행한다.
 
 ## 로컬 설치와 복구
 
 - Finder에서 `build/MacTV Custom.app`을 그대로 열거나 응용 프로그램 폴더에 `MacTV Custom.app` 이름으로 복사한다. 설정과 페어링은 `~/Library/Application Support/MacTV Custom`과 별도 앱 환경설정에 저장된다. 최초 실행 때 화면에 표시된 QR로 아이폰을 연결한다.
-- 초기 설정에서 필요한 OTT는 새로 로그인한다. 내장 플레이어는 커스텀 앱의 웹 세션을 사용한다. 외부 브라우저를 선택한 사이트는 그 브라우저의 프로필을 사용한다. 유튜브 광고 필터를 사용한다면 유니콘 Pro에서 실행용 `MacTV Custom.app`을 별도로 등록한다. LG의 BetterDisplay 밝기 경로에는 설치된 BetterDisplay가 실행 중이어야 한다.
-- 로컬 네트워크 접근을 요청하면 아이폰 웹 리모컨에 필요한 권한을 허용한다. 외부 Chrome·IINA 창 배치와 조작에 필요한 경우 macOS 개인정보 보호 및 보안에서 `MacTV Custom`에 손쉬운 사용 권한을 부여한다. 임시 서명으로 다시 빌드하면 macOS가 권한을 다시 요청할 수 있다. 같은 로컬 서명으로 반복 빌드하려면 원본 스크립트 `./scripts/make-signing-cert.sh 'MacTV Custom Local Signing'`을 한 번 실행한다. 키체인에 로컬 서명 인증서를 만들며 유료 Apple Developer 계정은 필요 없다.
-- 업데이트할 때는 커스텀 앱을 종료하고 `./build.sh --custom`으로 다시 빌드한다. 응용 프로그램 폴더에 복사해 쓰는 경우에만 그곳의 `MacTV Custom.app`을 새 빌드로 교체한다. 문제 발생 시 커스텀 앱을 종료한 뒤 기존 `/Applications/Mac TV.app`을 열면 기존 설정과 페어링을 사용할 수 있다. 원본 소스는 형제 폴더 `MacTV-Upstream`의 `v0.22`에 보존했다.
+- 초기 설정에서 필요한 OTT는 새로 로그인한다. 내장 플레이어는 커스텀 앱의 웹 세션을 사용한다. 외부 브라우저를 선택한 사이트는 그 브라우저의 프로필을 사용한다. LG의 BetterDisplay 밝기 경로에는 설치된 BetterDisplay가 실행 중이어야 한다.
+- 로컬 네트워크 접근을 요청하면 아이폰 웹 리모컨에 필요한 권한을 허용한다. 외부 Chrome·IINA 창 배치와 조작에 필요한 경우 macOS 개인정보 보호 및 보안에서 **CouchDial**에 손쉬운 사용 권한을 부여한다. 임시 서명으로 다시 빌드하면 macOS가 권한을 다시 요청할 수 있다. 같은 로컬 서명으로 반복 빌드하려면 원본 스크립트 `./scripts/make-signing-cert.sh 'MacTV Custom Local Signing'`을 한 번 실행한다. 키체인에 로컬 서명 인증서를 만들며 유료 Apple Developer 계정은 필요 없다.
+- 업데이트할 때는 커스텀 앱을 종료하고 `./build.sh --release`으로 다시 빌드한다. 응용 프로그램 폴더에 복사해 쓰는 경우에만 그곳의 `MacTV Custom.app`을 새 빌드로 교체한다. 문제 발생 시 커스텀 앱을 종료한 뒤 기존 `/Applications/Mac TV.app`을 열면 기존 설정과 페어링을 사용할 수 있다. 원본 소스는 형제 폴더 `MacTV-Upstream`의 `v0.22`에 보존했다.
 
 ## 문서 찾기
 
@@ -48,19 +48,7 @@ brew install --cask Cocomong98/mactv/mactv-custom
 
 <p align="center">Turn a Mac into an Apple TV-style box: a tvOS-style home screen, your streaming apps in their official web players, and your phone as the remote.</p>
 
-![Home screen](docs/screenshots/home.png)
-
-### Screenshots
-
-| Top Shelf | App grid |
-|---|---|
-| ![Top Shelf](docs/screenshots/top-shelf.png) | ![App grid](docs/screenshots/app-grid.png) |
-| **Settings** | **Screensaver** |
-| ![Settings](docs/screenshots/settings.png) | ![Screensaver](docs/screenshots/screensaver.png) |
-
-| Phone remote | Apps | TV controls |
-|---|---|---|
-| ![Remote](docs/screenshots/remote.png) | ![Apps](docs/screenshots/remote-apps.png) | ![TV controls](docs/screenshots/remote-controls.png) |
+원본 버전의 화면 예시는 [Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22)에서 확인할 수 있습니다.
 
 ### Install
 
@@ -83,7 +71,7 @@ Requires macOS 14 or later, on an Apple silicon or Intel Mac.
 - **Profiles:** each person gets their own apps and sign-ins.
 - **Power:** keeps the Mac awake for the remote, and can stay awake with the lid closed.
 - **Updates:** installs new versions by itself while nothing is playing, or when you choose in Settings › About.
-- **Your browser (optional):** open websites in Brave, Chrome, Edge or another Chromium browser instead of the built-in player, with that browser's sign-ins, extensions and ad blocking. Close its window and you're back on Mac TV.
+- **Your browser (optional):** open websites in Brave, Chrome, Edge or another Chromium browser instead of the built-in player, with that browser's sign-ins and extensions. Close its window and you're back on Mac TV.
 
 ### Privacy
 

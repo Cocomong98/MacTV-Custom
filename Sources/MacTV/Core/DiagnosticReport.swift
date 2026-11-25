@@ -13,13 +13,13 @@ enum DiagnosticReport {
     /// happens off the main thread.
     static func copy(from tv: TVController) {
         let facts = facts(tv)
-        tv.showToast("Preparing the report…")
+        tv.showToast("진단 보고서를 준비하는 중…")
         Task.detached(priority: .userInitiated) {
             let report = facts + "\n\n## Log (this session)\n\n" + sessionLog()
             await MainActor.run {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(report, forType: .string)
-                tv.showToast("Report copied. Paste it into a GitHub issue.")
+                tv.showToast("진단 보고서를 복사했습니다. GitHub 이슈에 붙여넣으세요.")
             }
             Log.app.notice("Diagnostics report copied")
         }

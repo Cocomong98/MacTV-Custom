@@ -1,12 +1,12 @@
   :root {
-    --bg:#07080b; --glass:rgba(255,255,255,.09); --line:rgba(255,255,255,.14);
+    --bg:#0b1017; --glass:rgba(255,255,255,.085); --line:rgba(211,230,249,.19);
+    --panel-top:#202a37; --panel-bottom:#111820; --panel-radius:30px; --control-radius:18px;
     /* Apple TV's Liquid Glass: blur and saturate what's behind, with a bright top edge. */
     --blur:blur(28px) saturate(170%); --sheen:inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 1px rgba(255,255,255,.05);
     /* Soft colour behind everything, so the glass has something to show. */
-    --ambient:radial-gradient(70vmax 60vmax at 10% 0%, rgba(70,110,255,.30), transparent 70%),
-              radial-gradient(60vmax 60vmax at 100% 55%, rgba(170,80,255,.20), transparent 70%),
-              radial-gradient(60vmax 50vmax at 20% 100%, rgba(0,190,170,.14), transparent 70%), #07080b;
-    --fg:#fff; --dim:rgba(255,255,255,.62); --ok:#3ddc84; --warn:#ff6b6b;
+    --ambient:radial-gradient(72vmax 58vmax at 16% 0%, rgba(64,100,150,.26), transparent 72%),
+              radial-gradient(56vmax 50vmax at 82% 100%, rgba(26,119,122,.16), transparent 68%), var(--bg);
+    --fg:#fff; --dim:rgba(255,255,255,.74); --ok:#3ddc84; --warn:#ff6b6b;
     /* Settings: grouped cards of 52px rows, 16px insets, 8px inside a group and 24px between groups. */
     --card:rgba(255,255,255,.07); --divider:rgba(255,255,255,.08); --on:#30d158; --danger:#ff6961;
     /* Controls size with the phone: round keys from 52 to 68px, spacing from the screen height. */
@@ -17,6 +17,7 @@
   body { background:var(--ambient); background-attachment:fixed; }
   main { width:100%; max-width:460px; min-height:100dvh; margin:0 auto; padding:calc(env(safe-area-inset-top) + 14px) clamp(14px, 5vw, 22px) calc(env(safe-area-inset-bottom) + 18px); display:flex; flex-direction:column; gap:var(--gap); touch-action:manipulation; }
   button { font:inherit; color:inherit; cursor:pointer; transition:transform .08s, background-color .08s; }
+  button:focus-visible { outline:3px solid #a5d6ff; outline-offset:3px; }
   .pressed { transform:scale(.93); }
   .round { width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--glass); -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--sheen); display:grid; place-items:center; }
   /* tvOS focus: a press lights the control up as a white platter. */
@@ -35,7 +36,7 @@
   .tabs button { height:100%; padding:0; border:0; border-radius:999px; background:transparent; color:rgba(255,255,255,.75); font-size:14px; font-weight:600; transition:background-color .2s, color .2s; }
   .tabs button.on { background:#fff; color:#000; box-shadow:0 1px 3px rgba(0,0,0,.3); }
   /* The touch surface takes whatever height is left, so the remote fills any phone. */
-  .surface { position:relative; flex:1 1 auto; min-height:210px; max-height:440px; border-radius:34px; background:rgba(255,255,255,.06); border:1px solid var(--line); -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--sheen); overflow:hidden; touch-action:none; }
+  .surface { position:relative; flex:1 1 auto; min-height:210px; max-height:440px; border-radius:var(--panel-radius); background:linear-gradient(155deg, rgba(255,255,255,.09), rgba(255,255,255,.035)); border:1px solid var(--line); -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--sheen); overflow:hidden; touch-action:none; }
   /* The ring is centred and sized to fit the surface; arrows and OK sit on it. */
   #clickpad .ring { position:absolute; left:50%; top:50%; height:min(260px, 70vw, 86%); aspect-ratio:1; transform:translate(-50%, -50%); border-radius:50%; border:1.5px solid rgba(255,255,255,.14); pointer-events:none; }
   #clickpad .chev { background:none; border:0; padding:0; min-width:44px; min-height:44px; position:absolute; width:40px; height:40px; display:grid; place-items:center; color:rgba(255,255,255,.55); transition:color .12s, scale .12s; }
@@ -65,11 +66,11 @@
 
   .scrim { position:fixed; inset:0; background:rgba(0,0,0,.5); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); display:none; flex-direction:column; justify-content:flex-end; z-index:5; }
   .scrim.show { display:flex; }
-  .sheet { max-width:460px; width:100%; max-height:88dvh; overflow-y:auto; margin:0 auto; padding:20px 18px calc(env(safe-area-inset-bottom) + 24px); border-radius:28px 28px 0 0; background:rgba(28,30,40,.86); -webkit-backdrop-filter:blur(40px) saturate(180%); backdrop-filter:blur(40px) saturate(180%); border-top:1px solid rgba(255,255,255,.18); box-shadow:var(--sheen); display:flex; flex-direction:column; gap:14px; }
+  .sheet { max-width:460px; width:100%; max-height:88dvh; overflow-y:auto; margin:0 auto; padding:20px 18px calc(env(safe-area-inset-bottom) + 24px); border-radius:var(--panel-radius) var(--panel-radius) 0 0; background:linear-gradient(155deg, var(--panel-top), var(--panel-bottom)); -webkit-backdrop-filter:blur(40px) saturate(180%); backdrop-filter:blur(40px) saturate(180%); border-top:1px solid rgba(255,255,255,.18); box-shadow:var(--sheen); display:flex; flex-direction:column; gap:14px; }
   .sheet > * { flex-shrink:0; }
   .sheet-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .sheet-head > span { font-size:18px; font-weight:800; }
-  .sheet-head > div { display:flex; gap:8px; }
+  .sheet-head > span { min-width:0; font-size:20px; font-weight:700; overflow-wrap:anywhere; }
+  .sheet-head > div { display:flex; gap:8px; flex:none; }
   .pill { height:44px; padding:0 14px; border:0; border-radius:999px; background:rgba(255,255,255,.12); font-size:14px; font-weight:600; }
   .pill.on { background:#fff; color:#000; }
   .apps { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:16px 12px; }
@@ -91,7 +92,7 @@
   #apps-sheet .pill { min-height:44px; }
   .app.add .art { background:transparent; border:2px dashed rgba(255,255,255,.25); box-shadow:none; color:var(--dim); font-weight:400; font-size:34px; }
   .editing .app.add { display:none; }
-  .row-btn { height:52px; border:0; border-radius:16px; background:rgba(255,255,255,.1); font-size:16px; font-weight:600; text-align:left; padding:0 18px; }
+  .row-btn { height:52px; border:0; border-radius:var(--control-radius); background:rgba(255,255,255,.1); font-size:16px; font-weight:600; text-align:left; padding:0 18px; }
   .browser-controls { display:flex; gap:8px; flex-wrap:wrap; }
   .browser-controls[hidden] { display:none; }
   .browser-controls button { flex:1; min-width:100px; min-height:44px; padding:8px; border:1px solid var(--line); border-radius:14px; background:var(--glass); font-size:13px; font-weight:600; }
@@ -192,3 +193,8 @@
   .item .item-actions { display:flex; gap:4px; flex:none; }
   .link { height:36px; padding:0 12px; border:0; border-radius:18px; background:transparent; font-size:15px; font-weight:600; }
   .link.danger { color:var(--danger); }
+
+  @media (prefers-reduced-motion: reduce) {
+    button { transition:none !important; }
+    .pressed, #clickpad .chev.hit, #clickpad .ok.hit { scale:1; transform:none; }
+  }

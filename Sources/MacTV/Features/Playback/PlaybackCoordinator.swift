@@ -68,14 +68,11 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
     // MARK: - Web Playback
 
     func websitePlayer(for service: Service, url: URL) -> BrowserChoice {
-        // The YouTube tile needs the TV user agent. Other links (including Top Shelf search)
-        // continue to use the profile's configured website player.
-        if service.id == "youtube", service.kind == .web(url) { return .embedded }
         return tv.map { $0.browserPreferences.choice(for: $0.profile.id) } ?? .embedded
     }
 
     func playWeb(_ service: Service, url: URL) {
-        var notice = "Home on your phone remote, or ⌘⇧H, comes back here"
+        var notice = "리모컨의 홈 버튼이나 ⌘⇧H를 누르면 홈으로 돌아갑니다."
         switch websitePlayer(for: service, url: url) {
         case .brave:
             playInBrowser(BrowserChoice.braveBundleID, name: "Brave", service: service, url: url)
@@ -85,7 +82,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
                 playInBrowser(bundleID, name: tv?.websitePlayerName ?? "the browser", service: service, url: url)
                 return
             }
-            notice = "The chosen browser isn't installed, so Mac TV is playing \(service.name)"
+            notice = "선택한 브라우저가 설치되어 있지 않아 내장 플레이어로 \(service.name) 앱을 엽니다."
         case .embedded: break
         }
         playbackRequest = UUID()
@@ -154,7 +151,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
                     arguments: ["action": action], contentWorld: .page)
                 guard self?.webView === web else { return }
                 if value as? String == "none" { self?.sendKey(fallback, to: web) }
-                else if value as? String == "unsupported" { self?.tv?.showToast("The website didn't accept this control. Try its on-screen player controls.") }
+                else if value as? String == "unsupported" { self?.tv?.showToast("웹사이트가 이 조작을 지원하지 않습니다. 재생 화면의 버튼을 사용하세요.") }
             } catch {
                 if self?.webView === web { self?.sendKey(fallback, to: web) }
             }
@@ -314,7 +311,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         guard !movie.isRemote else {
             currentLocalMovie = nil
             Log.movies.error("Server movie doesn't play in Mac TV's player")
-            tv?.showToast("Mac TV couldn't play \(movie.title) from \(movie.server ?? "the server").")
+            tv?.showToast("\(movie.server ?? "서버")에서 \(movie.title) 재생을 시작하지 못했습니다.")
             return
         }
         let iina = "com.colliderli.iina", vlc = "org.videolan.vlc"
@@ -323,9 +320,9 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         if let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: vlc) {
             NSWorkspace.shared.open([movie.url], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
             tv?.setLaunchedAppID(vlc)
-            tv?.showToast("Playing \(movie.title) in VLC. Home comes back here.")
+            tv?.showToast("VLC에서 \(movie.title) 재생 중입니다. 홈을 누르면 돌아옵니다.")
         } else {
-            tv?.showToast("Mac TV can't play this file. IINA, free from iina.io, can.")
+            tv?.showToast("이 파일을 재생할 수 없습니다. iina.io에서 IINA를 설치해 재생할 수 있습니다.")
         }
     }
 
@@ -370,7 +367,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
                 return false
             }
         }
-        guard let screen else { tv?.showToast("Connect the display for movie playback."); return false }
+        guard let screen else { tv?.showToast("동영상을 재생할 화면을 연결하세요."); return false }
         let pos = position ?? (moviePlayer?.movie.path == movie.path ? moviePlayer?.time : nil)
         var launched: IINAPlaybackSession?
         do {
@@ -437,7 +434,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
 
     func searchIINASubtitles() -> Bool {
         guard AXIsProcessTrusted() else {
-            tv?.showToast("Allow Mac TV in Accessibility settings to control IINA."); return false
+            tv?.showToast("시스템 설정의 손쉬운 사용에서 MacTV를 허용하면 IINA를 조작할 수 있습니다."); return false
         }
         guard let expected = currentLocalMovie?.path else { return false }
         Task { @MainActor [weak self] in
@@ -455,7 +452,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
                       let bar else { continue }
                 if self.pressIINASubtitleSearch(unsafeBitCast(bar, to: AXUIElement.self), depth: 0) { return }
             }
-            self?.tv?.showToast("IINA search wasn't available. Use the phone's subtitle upload or web search.")
+            self?.tv?.showToast("IINA에서 검색할 수 없습니다. 휴대전화에서 자막을 올리거나 웹에서 검색하세요.")
         }
         return true
     }
@@ -562,7 +559,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         catch BrowserSession.SessionError.unavailable {}
         catch {
             Log.playback.failure("Closing browser window", error)
-            tv?.showToast("Could not close Mac TV's \(previous?.name ?? "browser") window. Close it there.")
+            tv?.showToast("\(previous?.name ?? "브라우저") 창을 닫지 못했습니다. 해당 창에서 직접 닫아 주세요.")
         }
     }
 

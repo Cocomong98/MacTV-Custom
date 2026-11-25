@@ -20,3 +20,4 @@ work/
 .env.*
 !.env.example
 /local-test-data/
+/.local-edition/

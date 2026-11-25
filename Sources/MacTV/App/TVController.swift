@@ -37,7 +37,6 @@ final class TVController: NSObject, ObservableObject {
     let jellyfin: JellyfinServers
     let networkShares: NetworkShares
     let updater: Updater
-    let topShelf: TopShelfFeed
     let feedback: Feedback
     private var coordinatorChanges: [AnyCancellable] = []
 
@@ -208,7 +207,6 @@ final class TVController: NSObject, ObservableObject {
         jellyfin = appServices.jellyfin
         networkShares = appServices.networkShares
         updater = appServices.updater
-        topShelf = appServices.topShelf
         feedback = appServices.feedback
         self.browserPreferences = browserPreferences ?? BrowserPreferences()
         let store = profiles ?? ProfileStore(folder: library.storageFolder)
@@ -293,7 +291,6 @@ final class TVController: NSObject, ObservableObject {
         case .playbackCheck:
             switch command { case .back, .select: playbackCheck = nil; default: break }
             return
-        case .topShelfPreferences: handleTopShelfPreferences(command); return
         case .addApp: handleAdder(command); return
         case .pairing: handlePairing(command); return
         case .organizer: handleOrganizer(command); return
@@ -480,7 +477,7 @@ final class TVController: NSObject, ObservableObject {
             NSWorkspace.shared.open(SteamLibrary.launchURL(for: appID))
             openedSteam = true
             if appID != SteamLibrary.bigPicture.appID { watchForSteamGame() }
-            showToast("Opening \(service.name) in Steam")
+            showToast("Steam에서 \(service.name) 여는 중")
         case .movies:
             openMovies()
         case .addApp:
@@ -501,6 +498,7 @@ final class TVController: NSObject, ObservableObject {
         movies = nil
         playbackCoordinator.closeWebPlayback()
         mode = .launcher
+        if case .shelf = focus { setFocus(.app(shelfAppIndex)) }
         sheets.closeDismissible()
         playerFailure = nil
         pointer = nil
@@ -551,7 +549,7 @@ final class TVController: NSObject, ObservableObject {
     func stepWebsitePlayer(forward: Bool = true) {
         let players = websitePlayers
         guard players.count > 1 else {
-            showToast("Install a browser such as Brave to choose it.")
+            showToast("Brave 같은 브라우저를 설치하면 선택할 수 있습니다.")
             return
         }
         let current = players.firstIndex { $0.choice == browserPreferences.choice(for: profile.id) } ?? 0

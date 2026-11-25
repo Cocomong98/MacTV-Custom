@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mac TV">
+<meta name="apple-mobile-web-app-title" content="CouchDial">
 <meta name="theme-color" content="#0a0b0e">
-<title>MacTV 리모컨</title>
+<title>CouchDial 리모컨</title>
 <link rel="apple-touch-icon" href="/appicon.png">
 <link rel="icon" type="image/png" href="/appicon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -18,137 +18,137 @@
 <main>
   <header>
     <div style="min-width:0">
-      <h1><img src="/appicon.png" alt="Mac TV"></h1>
+      <h1><img src="/appicon.png" alt="CouchDial"></h1>
       <div class="status" hidden><span class="dot" id="dot"></span><span id="status"></span></div>
     </div>
     <div class="actions">
-      <button class="round" id="open-apps" aria-label="Apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
-      <button class="round" id="open-power" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="round" id="open-apps" aria-label="앱"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
+      <button class="round" id="open-power" aria-label="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </header>
 
-  <p class="note" id="guest-note">Guest remote · playback controls only</p>
-  <div class="tabs" role="tablist" aria-label="Remote mode">
-    <button role="tab" id="tab-click" class="on">Clickpad</button>
-    <button role="tab" id="tab-touch">Touchpad</button>
+  <p class="note" id="guest-note">게스트 리모컨 · 재생 조작만 가능</p>
+  <div class="tabs" role="tablist" aria-label="리모컨 모드">
+    <button role="tab" id="tab-click" class="on">클릭패드</button>
+    <button role="tab" id="tab-touch">터치패드</button>
   </div>
 
-  <div class="surface" id="clickpad" aria-label="Swipe or tap an arrow to move, tap the middle to select">
+  <div class="surface" id="clickpad" aria-label="밀거나 화살표를 눌러 이동하고 가운데를 눌러 선택하세요">
     <div class="ring">
-    <button type="button" class="chev up" data-dir="up" aria-label="Move up"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
-    <button type="button" class="chev down" data-dir="down" aria-label="Move down"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
-    <button type="button" class="chev left" data-dir="left" aria-label="Move left"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-    <button type="button" class="chev right" data-dir="right" aria-label="Move right"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-    <button type="button" class="ok" id="ok" aria-label="Select">OK</button>
+    <button type="button" class="chev up" data-dir="up" aria-label="위로 이동"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
+    <button type="button" class="chev down" data-dir="down" aria-label="아래로 이동"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+    <button type="button" class="chev left" data-dir="left" aria-label="왼쪽으로 이동"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <button type="button" class="chev right" data-dir="right" aria-label="오른쪽으로 이동"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <button type="button" class="ok" id="ok" aria-label="선택">선택</button>
     </div>
   </div>
-  <div class="surface" id="touchpad"><div class="hint">Drag to move · tap to click · two fingers to scroll</div></div>
+  <div class="surface" id="touchpad"><div class="hint">드래그로 이동 · 탭으로 클릭 · 두 손가락으로 스크롤</div></div>
 
   <div class="keys">
-    <button class="key" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-    <button class="key home" data-a="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg><span>Home</span></button>
-    <button class="key primary" data-a="playpause" data-h="tap" aria-label="Play or pause"><svg viewBox="0 0 24 24" fill="#000"><path d="M3 5v14l8-7z"/><rect x="14" y="5" width="3" height="14" rx="1"/><rect x="19" y="5" width="3" height="14" rx="1"/></svg></button>
-    <button class="key" data-a="mute" aria-label="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>
-    <button class="key" data-a="rewind" aria-label="Back 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6v12l-8-6z"/><path d="M21 6v12l-8-6z"/></svg></button>
-    <button class="key" data-a="voldown" aria-label="Volume down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 12h5"/></svg></button>
-    <button class="key" data-a="volup" aria-label="Volume up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 12h5M18.5 9.5v5"/></svg></button>
-    <button class="key" data-a="forward" aria-label="Forward 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6v12l8-6z"/><path d="M3 6v12l8-6z"/></svg></button>
+    <button class="key" data-a="back" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <button class="key home" data-a="home" aria-label="홈"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg><span>홈</span></button>
+    <button class="key primary" data-a="playpause" data-h="tap" aria-label="재생 또는 일시 정지"><svg viewBox="0 0 24 24" fill="#000"><path d="M3 5v14l8-7z"/><rect x="14" y="5" width="3" height="14" rx="1"/><rect x="19" y="5" width="3" height="14" rx="1"/></svg></button>
+    <button class="key" data-a="mute" aria-label="음소거"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>
+    <button class="key" data-a="rewind" aria-label="10초 뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6v12l-8-6z"/><path d="M21 6v12l-8-6z"/></svg></button>
+    <button class="key" data-a="voldown" aria-label="음량 낮추기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 12h5"/></svg></button>
+    <button class="key" data-a="volup" aria-label="음량 높이기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 12h5M18.5 9.5v5"/></svg></button>
+    <button class="key" data-a="forward" aria-label="10초 앞으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 6v12l8-6z"/><path d="M3 6v12l8-6z"/></svg></button>
   </div>
 
-  <div id="browser-controls" class="browser-controls" hidden aria-label="Browser controls">
-    <button type="button" data-a="previouscontrol">Previous control</button>
-    <button type="button" data-a="nextcontrol">Next control</button>
-    <button type="button" id="browser-return" data-a="activatebrowser">Return to Brave</button>
-    <button type="button" data-a="browserfullscreen">Full screen on/off</button>
-    <button type="button" id="browser-retry" hidden>Retry</button>
+  <div id="browser-controls" class="browser-controls" hidden aria-label="브라우저 조작">
+    <button type="button" data-a="previouscontrol">이전 요소</button>
+    <button type="button" data-a="nextcontrol">다음 요소</button>
+    <button type="button" id="browser-return" data-a="activatebrowser">Brave로 돌아가기</button>
+    <button type="button" data-a="browserfullscreen">전체 화면 전환</button>
+    <button type="button" id="browser-retry" hidden>다시 시도</button>
     <p class="note err" id="browser-error" role="status" hidden></p>
     <p class="note" id="browser-control-note" role="status"></p>
   </div>
 
-  <div id="iina-controls" class="browser-controls" hidden aria-label="IINA controls">
-    <button type="button" data-a="activatebrowser">Return to IINA</button>
-    <button type="button" data-a="browserfullscreen">Full screen on/off</button>
+  <div id="iina-controls" class="browser-controls" hidden aria-label="IINA 조작">
+    <button type="button" data-a="activatebrowser">IINA로 돌아가기</button>
+    <button type="button" data-a="browserfullscreen">전체 화면 전환</button>
     <p class="note" id="iina-status" role="status" aria-live="polite" hidden></p>
     <p class="note err" id="iina-error" role="status" aria-live="polite" hidden></p>
   </div>
 
-  <button class="row-btn text-tools" id="open-text" aria-label="Open website or type on TV">Open website or type</button>
+  <button class="row-btn text-tools" id="open-text" aria-label="웹사이트 열기 또는 TV에서 입력">웹사이트 열기 또는 입력</button>
 </main>
 
 <div class="scrim" id="text-sheet">
-  <div class="sheet" role="dialog" aria-modal="true" aria-label="Open website or type on TV">
-    <div class="sheet-head"><span>Website and keyboard</span><div><button class="pill" data-close>Done</button></div></div>
-    <div class="group-label">Open a website</div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="웹사이트 열기 또는 TV에서 입력">
+    <div class="sheet-head"><span>웹사이트 및 키보드</span><div><button class="pill" data-close>완료</button></div></div>
+    <div class="group-label">웹사이트 열기</div>
   <form class="type website-form" id="open-website" autocomplete="off">
-    <input id="website-address" type="text" inputmode="url" placeholder="Open a website…" aria-label="Website address" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button type="submit" id="website-go">Go</button>
+    <input id="website-address" type="text" inputmode="url" placeholder="웹사이트 주소 입력…" aria-label="웹사이트 주소" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button type="submit" id="website-go">열기</button>
   </form>
   <p class="note err" id="website-open-error" role="status" aria-live="polite" hidden></p>
 
-  <div class="group-label">Type on TV</div>
+  <div class="group-label">TV에서 입력</div>
   <form class="type" id="type" autocomplete="off">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
-    <input id="typed" placeholder="Type on the TV…" aria-label="Type on the TV" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <button type="button" data-a="backspace" aria-label="Delete"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8l-6 7 6 7h13z"/><path d="M17 9l-6 6M11 9l6 6"/></svg></button>
+    <input id="typed" placeholder="TV에 보낼 텍스트 입력…" aria-label="TV에서 입력" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button type="button" data-a="backspace" aria-label="지우기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8l-6 7 6 7h13z"/><path d="M17 9l-6 6M11 9l6 6"/></svg></button>
   </form>
   </div>
 </div>
 
 <div class="scrim" id="apps-sheet">
-  <div class="sheet" role="dialog" aria-label="Apps">
-    <div class="sheet-head"><span id="apps-title">Open on TV</span><div><button class="pill" id="edit-apps">Edit</button><button class="pill" data-close>Done</button></div></div>
-    <button class="row-btn" id="open-files">📁  Files on Mac</button>
+  <div class="sheet" role="dialog" aria-label="앱">
+    <div class="sheet-head"><span id="apps-title">TV에서 열기</span><div><button class="pill" id="edit-apps">편집</button><button class="pill" data-close>완료</button></div></div>
+    <button class="row-btn" id="open-files">📁  Mac의 파일</button>
     <div class="apps" id="apps"></div>
-    <p class="note" id="edit-note" hidden>Pinned favourites appear first. Move apps within favourites or other apps. To put a built-in app back, use Add App on the TV.</p>
+    <p class="note" id="edit-note" hidden>고정한 앱이 먼저 표시됩니다. 고정한 앱과 다른 앱은 각 그룹에서 순서를 바꿀 수 있습니다. 기본 앱을 다시 표시하려면 TV에서 앱 추가를 선택하세요.</p>
     <p class="note" id="apps-msg" role="status" aria-live="polite" hidden></p>
   </div>
 </div>
 
 <div class="scrim" id="files-sheet">
-  <div class="sheet" role="dialog" aria-label="Files on Mac">
-    <div class="sheet-head"><span>Files on Mac</span><div><button class="pill" id="files-back">Back</button><button class="pill" data-close>Done</button></div></div>
+  <div class="sheet" role="dialog" aria-label="Mac의 파일">
+    <div class="sheet-head"><span>Mac의 파일</span><div><button class="pill" id="files-back">뒤로</button><button class="pill" data-close>완료</button></div></div>
     <div class="file-path" id="files-path"></div>
-    <input class="field" id="files-filter" placeholder="Filter filenames" aria-label="Filter filenames" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input class="field" id="files-filter" placeholder="파일 이름으로 필터링" aria-label="파일 이름으로 필터링" autocapitalize="off" autocorrect="off" spellcheck="false">
     <p class="note" id="files-msg" role="status" aria-live="polite"></p>
     <div class="list file-list" id="files-list"></div>
-    <button class="row-btn" id="files-more" hidden>Load more</button>
+    <button class="row-btn" id="files-more" hidden>더 불러오기</button>
     <div id="movie-options" hidden>
-      <div class="group-label">Selected video</div>
+      <div class="group-label">선택한 동영상</div>
       <p id="movie-name"></p>
       <div class="file-actions">
-        <button class="row-btn" id="play-native">Play on Mac TV</button>
-        <button class="row-btn" id="play-iina">Play in IINA</button>
-        <button class="row-btn" id="subtitle-options">Subtitle options</button>
+        <button class="row-btn" id="play-native">CouchDial에서 재생</button>
+        <button class="row-btn" id="play-iina">IINA에서 재생</button>
+        <button class="row-btn" id="subtitle-options">자막 옵션</button>
       </div>
     </div>
     <div id="subtitle-panel" hidden>
-      <div class="group-label">Subtitles</div>
-      <p class="note">Choose a subtitle from this folder or upload a UTF-8 .srt file from your phone (up to 256 KB). Applying a subtitle opens the video in IINA.</p>
+      <div class="group-label">자막</div>
+      <p class="note">이 폴더에서 자막을 고르거나 휴대전화에서 최대 256KB의 UTF-8 .srt 파일을 올리세요. 자막을 적용하면 IINA에서 재생됩니다.</p>
       <div class="list file-list" id="subtitle-list"></div>
-      <input id="subtitle-upload" type="file" accept=".srt,text/plain" aria-label="Upload subtitle file">
+      <input id="subtitle-upload" type="file" accept=".srt,text/plain" aria-label="자막 파일 올리기">
       <div class="file-actions">
-        <button class="row-btn" id="subtitle-search-iina">Search in IINA</button>
-        <button class="row-btn" id="subtitle-search-web">Search subtitles on phone</button>
+        <button class="row-btn" id="subtitle-search-iina">IINA에서 검색</button>
+        <button class="row-btn" id="subtitle-search-web">휴대전화에서 자막 검색</button>
       </div>
     </div>
   </div>
 </div>
 
 <div class="scrim" id="add-sheet">
-  <div class="sheet" role="dialog" aria-label="Add an app">
-    <div class="sheet-head"><span>Add an app</span><div><button class="pill" data-close>Cancel</button></div></div>
+  <div class="sheet" role="dialog" aria-label="앱 추가">
+    <div class="sheet-head"><span>앱 추가</span><div><button class="pill" data-close>취소</button></div></div>
     <div class="tabs" role="tablist">
-      <button role="tab" id="add-web-tab" class="on">Website</button>
-      <button role="tab" id="add-mac-tab">Mac app</button>
+      <button role="tab" id="add-web-tab" class="on">웹사이트</button>
+      <button role="tab" id="add-mac-tab">Mac 앱</button>
     </div>
     <form id="web-form" autocomplete="off">
-      <input class="field" id="web-url" inputmode="url" placeholder="Website, e.g. crunchyroll.com" aria-label="Website address" autocapitalize="off" autocorrect="off" spellcheck="false">
-      <input class="field" id="web-name" placeholder="Name (optional)" aria-label="Name">
-      <button class="cancel" type="submit">Add to TV</button>
-      <p class="note">Mac TV looks up the app's official icon for you.</p>
+      <input class="field" id="web-url" inputmode="url" placeholder="웹사이트 주소 (예: crunchyroll.com)" aria-label="웹사이트 주소" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="field" id="web-name" placeholder="이름 (선택)" aria-label="이름">
+      <button class="cancel" type="submit">TV에 추가</button>
+      <p class="note">CouchDial가 앱의 공식 아이콘을 찾아 표시합니다.</p>
     </form>
     <div id="mac-form" hidden>
-      <input class="field" id="mac-q" placeholder="Search apps on the Mac" aria-label="Search apps on the Mac" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="field" id="mac-q" placeholder="Mac에 설치된 앱 검색" aria-label="Mac에 설치된 앱 검색" autocapitalize="off" autocorrect="off" spellcheck="false">
       <div class="list" id="mac-list" style="margin-top:10px"></div>
     </div>
     <p class="note" id="add-msg"></p>
@@ -156,118 +156,118 @@
 </div>
 
 <div class="scrim" id="power-sheet">
-  <div class="sheet settings" role="dialog" aria-label="Settings">
+  <div class="sheet settings" role="dialog" aria-label="설정">
     <section class="page" id="settings-main">
-      <div class="sheet-head"><span>Settings</span><div><button class="pill" data-close>Done</button></div></div>
+      <div class="sheet-head"><span>설정</span><div><button class="pill" data-close>완료</button></div></div>
 
-      <div class="section-label">Sleep timer</div>
-      <div class="segmented" id="sleep-chips" role="group" aria-label="Sleep timer">
-        <button data-m="0">Off</button><button data-m="15">15m</button><button data-m="30">30m</button><button data-m="60">1h</button><button data-m="90">1½h</button>
+      <div class="section-label">취침 타이머</div>
+      <div class="segmented" id="sleep-chips" role="group" aria-label="취침 타이머">
+        <button data-m="0">끔</button><button data-m="15">15분</button><button data-m="30">30분</button><button data-m="60">1시간</button><button data-m="90">1시간 30분</button>
       </div>
       <p class="footnote" id="sleep-left" hidden></p>
 
-      <div class="section-label">Watching</div>
+      <div class="section-label">시청</div>
       <div class="group">
-        <label class="row"><span>Skip intros and recaps</span><input type="checkbox" class="switch" id="auto-skip"></label>
-        <label class="row"><span>Play next episode</span><input type="checkbox" class="switch" id="auto-next"></label>
-        <button class="row nav" data-page="page-player"><span>Website player</span><span class="value" id="website-player-value">Built-in</span></button>
+        <label class="row"><span>오프닝 및 지난 이야기 건너뛰기</span><input type="checkbox" class="switch" id="auto-skip"></label>
+        <label class="row"><span>다음 회차 재생</span><input type="checkbox" class="switch" id="auto-next"></label>
+        <button class="row nav" data-page="page-player"><span>웹사이트 재생 앱</span><span class="value" id="website-player-value">내장 플레이어</span></button>
       </div>
 
       <div class="section-label">TV</div>
       <div class="group">
-        <button class="row nav" data-page="page-display"><span>Display &amp; sound</span><span class="value" id="display-value">Automatic</span></button>
+        <button class="row nav" data-page="page-display"><span>화면 및 사운드</span><span class="value" id="display-value">자동</span></button>
       </div>
       <div class="tiles">
-        <button class="tile" id="screen-on">Wake screen</button>
-        <button class="tile" id="screen-off">Screen off</button>
+        <button class="tile" id="screen-on">화면 깨우기</button>
+        <button class="tile" id="screen-off">화면 끄기</button>
       </div>
 
-      <div class="section-label">Power</div>
+      <div class="section-label">전원</div>
       <div class="group">
-        <label class="row"><span>Keep Mac awake</span><input type="checkbox" class="switch" id="keep-awake"></label>
-        <label class="row"><span>Awake with lid closed</span><input type="checkbox" class="switch" id="lid-override"></label>
+        <label class="row"><span>Mac을 깨어 있게 유지</span><input type="checkbox" class="switch" id="keep-awake"></label>
+        <label class="row"><span>덮개를 닫아도 깨어 있기</span><input type="checkbox" class="switch" id="lid-override"></label>
       </div>
       <p class="footnote" id="lid-status"></p>
 
-      <div class="section-label">Library</div>
+      <div class="section-label">보관함</div>
       <div class="group">
-        <button class="row nav" data-page="page-shares"><span>Network shares</span><span class="value" id="shares-count"></span></button>
+        <button class="row nav" data-page="page-shares"><span>네트워크 공유</span><span class="value" id="shares-count"></span></button>
         <button class="row nav" data-page="page-jellyfin"><span>Jellyfin</span><span class="value" id="jellyfin-count"></span></button>
       </div>
 
-      <div class="section-label">Remotes</div>
+      <div class="section-label">리모컨</div>
       <div class="group">
-        <button class="row nav" data-page="page-devices"><span>Paired devices</span><span class="value" id="devices-count"></span></button>
+        <button class="row nav" data-page="page-devices"><span>연결된 기기</span><span class="value" id="devices-count"></span></button>
       </div>
 
-      <button class="tile wide" id="sleep">Sleep Mac</button>
-      <p class="footnote">Wake it again with its keyboard or lid.</p>
+      <button class="tile wide" id="sleep">Mac 잠자기</button>
+      <p class="footnote">Mac 키보드를 누르거나 덮개를 열어 다시 깨울 수 있습니다.</p>
     </section>
 
     <section class="page" id="page-player" hidden>
-      <div class="page-head"><button class="back" data-back>Settings</button><span>Website player</span></div>
+      <div class="page-head"><button class="back" data-back>설정</button><span>웹사이트 재생 앱</span></div>
       <div class="group choices" id="website-player"></div>
-      <p class="footnote">Every website opens in this player. A browser opens sites as an app, without tabs or toolbar, with its own sign-ins, extensions and ad blocking.</p>
+      <p class="footnote">웹사이트는 선택한 앱에서 열립니다. 브라우저를 선택하면 탭과 도구 막대 없이 열리며 해당 브라우저의 로그인, 확장 기능, 광고 차단을 사용합니다.</p>
       <p class="footnote err" id="browser-msg" role="status" aria-live="polite" hidden></p>
     </section>
 
     <section class="page" id="page-display" hidden>
-      <div class="page-head"><button class="back" data-back>Settings</button><span>Display &amp; sound</span></div>
-      <div class="section-label">Volume</div>
+      <div class="page-head"><button class="back" data-back>설정</button><span>화면 및 사운드</span></div>
+      <div class="section-label">음량</div>
       <div class="group">
         <div class="row brightness-row">
-          <span id="speaker-name">Built-in speakers</span><output id="speaker-value" for="speaker-range">—</output>
+          <span id="speaker-name">내장 스피커</span><output id="speaker-value" for="speaker-range">—</output>
           <input class="speaker-range" id="speaker-range" type="range" min="0" max="100" step="1" value="0"
-                 aria-label="Built-in speaker volume" aria-describedby="speaker-msg" disabled>
+                 aria-label="내장 스피커 음량" aria-describedby="speaker-msg" disabled>
           <small id="speaker-msg" role="status" hidden></small>
         </div>
       </div>
-      <div class="section-label" id="brightness-label">Brightness</div>
-      <p class="footnote" id="brightness-help">Tap a preset, or hold and drag the slider for finer control.</p>
+      <div class="section-label" id="brightness-label">밝기</div>
+      <p class="footnote" id="brightness-help">단계별 버튼을 누르거나 슬라이더를 길게 누른 뒤 끌어 밝기를 세밀하게 조절하세요.</p>
       <div class="group" id="display-brightness" role="group" aria-labelledby="brightness-label"></div>
       <p class="footnote" id="brightness-msg" role="status" hidden></p>
-      <div class="section-label">Playback display</div>
+      <div class="section-label">재생 화면</div>
       <div class="group choices" id="display-select"></div>
       <p class="footnote" id="display-msg" role="status" aria-live="polite" hidden></p>
     </section>
 
     <section class="page" id="page-shares" hidden>
-      <div class="page-head"><button class="back" data-back>Settings</button><span>Network shares</span></div>
+      <div class="page-head"><button class="back" data-back>설정</button><span>네트워크 공유</span></div>
       <div class="group" id="shares" hidden></div>
-      <div class="section-label">Add a share</div>
+      <div class="section-label">공유 폴더 추가</div>
       <form class="group form" id="share-form" autocomplete="off">
-        <label class="row"><span>Folder</span><input id="share-address" placeholder="nas.local/Movies" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-        <label class="row"><span>User</span><input id="share-user" placeholder="Guest" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-        <label class="row"><span>Password</span><input id="share-password" type="password" placeholder="Optional" autocomplete="off"></label>
+        <label class="row"><span>폴더</span><input id="share-address" placeholder="nas.local/Movies" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <label class="row"><span>사용자 이름</span><input id="share-user" placeholder="게스트" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <label class="row"><span>암호</span><input id="share-password" type="password" placeholder="선택" autocomplete="off"></label>
       </form>
-      <button class="tile primary" type="submit" form="share-form">Add share</button>
-      <p class="footnote" id="shares-msg" role="status" aria-live="polite">Its movies appear in Movies on the TV.</p>
+      <button class="tile primary" type="submit" form="share-form">공유 폴더 추가</button>
+      <p class="footnote" id="shares-msg" role="status" aria-live="polite">동영상은 CouchDial의 동영상 메뉴에 표시됩니다.</p>
     </section>
 
     <section class="page" id="page-jellyfin" hidden>
-      <div class="page-head"><button class="back" data-back>Settings</button><span>Jellyfin</span></div>
+      <div class="page-head"><button class="back" data-back>설정</button><span>Jellyfin</span></div>
       <div class="group" id="jellyfin" hidden></div>
-      <div class="section-label">Sign in to a server</div>
+      <div class="section-label">서버에 로그인</div>
       <form class="group form" id="jellyfin-form" autocomplete="off">
-        <label class="row"><span>Server</span><input id="jellyfin-address" placeholder="192.168.1.5:8096" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-        <label class="row"><span>User</span><input id="jellyfin-user" placeholder="Name" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-        <label class="row"><span>Password</span><input id="jellyfin-password" type="password" placeholder="Password" autocomplete="off"></label>
+        <label class="row"><span>서버</span><input id="jellyfin-address" placeholder="192.168.1.5:8096" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <label class="row"><span>사용자 이름</span><input id="jellyfin-user" placeholder="이름" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <label class="row"><span>암호</span><input id="jellyfin-password" type="password" placeholder="암호" autocomplete="off"></label>
       </form>
-      <button class="tile primary" type="submit" form="jellyfin-form">Sign in</button>
-      <p class="footnote" id="jellyfin-msg" role="status" aria-live="polite">Its movies appear in Movies on the TV.</p>
+      <button class="tile primary" type="submit" form="jellyfin-form">로그인</button>
+      <p class="footnote" id="jellyfin-msg" role="status" aria-live="polite">동영상은 CouchDial의 동영상 메뉴에 표시됩니다.</p>
     </section>
 
     <section class="page" id="page-devices" hidden>
-      <div class="page-head"><button class="back" data-back>Settings</button><span>Paired devices</span></div>
+      <div class="page-head"><button class="back" data-back>설정</button><span>연결된 기기</span></div>
       <div class="group" id="devices"></div>
-      <button class="tile wide danger" id="revoke-all">Remove all</button>
+      <button class="tile wide danger" id="revoke-all">모두 제거</button>
       <p class="footnote" id="devices-msg"></p>
     </section>
   </div>
 </div>
 
 <div id="pair" lang="ko">
-  <h1>MacTV 리모컨 연결</h1>
+  <h1>CouchDial 리모컨 연결</h1>
   <p>맥 화면에 표시된 6자리 연결 코드를 입력하세요.</p>
   <input id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-label="연결 코드">
   <input id="device-name" maxlength="60" placeholder="기기 이름 (선택)" aria-label="기기 이름">

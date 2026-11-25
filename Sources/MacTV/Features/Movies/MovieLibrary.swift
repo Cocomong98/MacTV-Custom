@@ -250,7 +250,7 @@ final class MovieLibrary: ObservableObject {
     var shelf: [(path: String, image: NSImage)] {
         var seen = Set<String>()
         return (continueWatching + movies).compactMap { movie in
-            guard seen.insert(movie.path).inserted, let image = posters[movie.path] else { return nil }
+            guard !movie.isRemote, seen.insert(movie.path).inserted, let image = posters[movie.path] else { return nil }
             return (movie.path, image)
         }
         .prefix(8).map { $0 }

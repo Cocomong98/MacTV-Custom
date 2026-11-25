@@ -73,7 +73,6 @@ struct ModalSheetRouter: View {
         case .organizer: AppOrganizerSheet(tv: tv)
         case .pairing: PairSheet(tv: tv)
         case .addApp: AddAppSheet(tv: tv)
-        case .topShelfPreferences: TopShelfPreferencesSheet(tv: tv)
         case .playbackCheck: PlaybackCheckSheet(tv: tv)
         case .audioPicker: AudioPickerSheet(tv: tv)
         case .profilePicker: ProfilesScreen(tv: tv)
@@ -84,7 +83,7 @@ struct ModalSheetRouter: View {
     /// Control Center drops from the top like tvOS's; full-screen flows fade; the rest settle in.
     private func transition(_ layer: SheetStack.Layer) -> AnyTransition {
         switch layer {
-        case .controlCenter: .move(edge: .top)
+        case .controlCenter: reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity)
         case .profilePicker, .setup: .opacity
         default: Motion.sheet(reduceMotion: reduceMotion)
         }
