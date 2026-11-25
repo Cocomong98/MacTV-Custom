@@ -15,7 +15,11 @@ brew tap Cocomong98/mactv https://github.com/Cocomong98/MacTV-Custom.git
 brew install --cask Cocomong98/mactv/mactv-custom
 ```
 
-다음 버전은 `brew update` 후 `brew upgrade --cask Cocomong98/mactv/mactv-custom`으로 설치합니다. DMG로 설치한 `0.1.0` 사용자는 기존 앱 번들을 별도 폴더에 옮긴 뒤 Cask로 설치하면 앱 데이터 폴더와 페어링을 이어서 사용할 수 있습니다.
+기존 Homebrew 사용자는 `brew update` 후 `brew upgrade --cask Cocomong98/mactv/mactv-custom`으로 0.4.0을 설치할 수 있습니다.
+
+### 앱에서 업데이트
+
+0.4.0부터 **설정 → 앱 정보 → 업데이트 확인**에서 새 정식 버전을 확인합니다. 변경 내용을 본 뒤 **업데이트 및 재시작**을 누르면 설치까지 진행합니다. 0.3.1 이하에서는 처음 한 번 Homebrew 또는 DMG로 0.4.0을 설치하세요.
 
 ## 시작하기
 
