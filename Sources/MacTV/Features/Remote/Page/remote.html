@@ -22,10 +22,13 @@
       <div class="status" hidden><span class="dot" id="dot"></span><span id="status"></span></div>
     </div>
     <div class="actions">
+      <button type="button" class="round" id="open-brightness" aria-label="화면 밝기" aria-haspopup="dialog" aria-controls="power-sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button>
+      <button type="button" class="round" id="app-fullscreen" aria-label="앱 전체 화면" aria-describedby="app-fullscreen-msg" aria-pressed="false" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M9 21H3v-6m12 6h6v-6"/></svg></button>
       <button class="round" id="open-apps" aria-label="앱"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
       <button class="round" id="open-power" aria-label="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </header>
+  <p class="note err" id="app-fullscreen-msg" role="status" hidden></p>
 
   <p class="note" id="guest-note">게스트 리모컨 · 재생 조작만 가능</p>
   <div class="tabs" role="tablist" aria-label="리모컨 모드">
@@ -222,7 +225,7 @@
           <small id="speaker-msg" role="status" hidden></small>
         </div>
       </div>
-      <div class="section-label" id="brightness-label">밝기</div>
+      <div class="section-label" id="brightness-label" tabindex="-1">밝기</div>
       <p class="footnote" id="brightness-help">단계별 버튼을 누르거나 슬라이더를 길게 누른 뒤 끌어 밝기를 세밀하게 조절하세요.</p>
       <div class="group" id="display-brightness" role="group" aria-labelledby="brightness-label"></div>
       <p class="footnote" id="brightness-msg" role="status" hidden></p>

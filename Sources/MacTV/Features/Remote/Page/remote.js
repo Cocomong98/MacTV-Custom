@@ -113,6 +113,7 @@ let remoteReachable = false;
 function online(ok, sleeping = false) {
   const changed = remoteReachable !== ok;
   remoteReachable = ok;
+  renderFullscreen();
   $('.status').hidden = ok && !sleeping;
   // A Mac that's fully asleep is off the network; only its own keyboard, trackpad or lid wakes it.
   $('#status').textContent = !ok ? 'Mac에 연결할 수 없습니다. 잠자기 상태라면 키보드를 누르거나 덮개를 열어 깨우세요.' : sleeping ? '화면 잠자기 중 · 조작하면 깨어납니다' : '';
@@ -275,6 +276,8 @@ async function readState() {
     $('#lid-status').textContent = remoteText(s.lidStatus);
     if (!speaker.saving) updateSpeaker(s.speakerVolume);
     if (!displayChanging) updateDisplays(s.displaySetup);
+    fullscreenState = s.displaySetup;
+    renderFullscreen();
     refreshBrightness();
     renderPlayerChoices(typeof s.websitePlayer === 'string' ? s.websitePlayer : 'embedded', s.braveInstalled === true, s.websitePlayers);
     const player = s.externalPlayer && s.externalPlayer.name === 'IINA' ? s.externalPlayer : null;
@@ -335,6 +338,14 @@ function updateDisplays(setup) {
 }
 
 const brightnessRows = new Map();
+let fullscreenState, fullscreenRequest = false;
+function renderFullscreen() {
+  const button = $('#app-fullscreen');
+  button.disabled = !remoteReachable || typeof fullscreenState?.fullscreen !== 'boolean'
+    || fullscreenRequest || fullscreenState.fullscreenChanging === true;
+  button.setAttribute('aria-pressed', String(fullscreenState?.fullscreen === true));
+}
+
 const brightnessPresets = [0, 25, 50, 75, 100];
 const brightnessHoldMs = 350;
 let brightnessReading = false, brightnessRevision = 0;
@@ -1106,25 +1117,66 @@ $('#type').onsubmit = e => {
 };
 
 // Sheets
+let brightnessShortcut = false;
 const closeSheets = () => {
+  const closingBrightnessShortcut = brightnessShortcut && $('#power-sheet').classList.contains('show');
+  brightnessShortcut = false;
   const closingText = $('#text-sheet').classList.contains('show');
   document.querySelectorAll('.scrim').forEach(s => s.classList.remove('show'));
   if (closingText) $('#open-text').focus();
+  if (closingBrightnessShortcut) $('#open-brightness').focus();
   if (editing) { editing = false; renderApps(); }
 };
 document.querySelectorAll('.scrim').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeSheets(); }));
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
 $('#open-text').onclick = () => { haptic('tick'); $('#text-sheet').classList.add('show'); $('#text-sheet [data-close]').focus(); };
 $('#open-apps').onclick = () => { haptic('tick'); refresh(); $('#apps-sheet').classList.add('show'); };
-$('#open-power').onclick = () => { haptic('tick'); resetSleep(); showPage('settings-main'); refresh(); loadDevices(); loadShares(); loadJellyfin(); $('#power-sheet').classList.add('show'); };
+$('#open-power').onclick = () => { brightnessShortcut = false; haptic('tick'); resetSleep(); showPage('settings-main'); refresh(); loadDevices(); loadShares(); loadJellyfin(); $('#power-sheet').classList.add('show'); };
+$('#open-brightness').onclick = () => {
+  brightnessShortcut = true;
+  haptic('tick');
+  $('#power-sheet').classList.add('show');
+  showPage('page-display');
+  const label = $('#brightness-label');
+  label.focus({ preventScroll: true });
+  label.scrollIntoView({ block:'start' });
+  refresh();
+};
+$('#app-fullscreen').onclick = async () => {
+  if ($('#app-fullscreen').disabled) return;
+  const note = $('#app-fullscreen-msg');
+  note.hidden = true;
+  fullscreenRequest = true;
+  renderFullscreen();
+  haptic('tick');
+  try {
+    await api('/display/fullscreen', { fullscreen: !fullscreenState.fullscreen });
+  } catch (error) {
+    if (error.message !== 'unpaired') {
+      note.textContent = remoteText(error.message) || '전체 화면을 전환할 수 없습니다.';
+      note.hidden = false;
+    }
+  } finally {
+    await refresh();
+    fullscreenRequest = false;
+    renderFullscreen();
+  }
+};
 // Settings opens sub-pages in place, each with a way back.
 function showPage(id) {
   document.querySelectorAll('#power-sheet .page').forEach(page => { page.hidden = page.id !== id; });
   $('#power-sheet .sheet').scrollTop = 0;
-  if (id === 'page-display') refreshBrightness();
+  if (id === 'page-display') {
+    $('#page-display [data-back]').textContent = brightnessShortcut ? '리모컨' : '설정';
+    refreshBrightness();
+  }
 }
 document.querySelectorAll('#power-sheet [data-page]').forEach(row => row.onclick = () => { haptic('tick'); showPage(row.dataset.page); });
-document.querySelectorAll('#power-sheet [data-back]').forEach(back => back.onclick = () => { haptic('tick'); showPage('settings-main'); });
+document.querySelectorAll('#power-sheet [data-back]').forEach(back => back.onclick = () => {
+  haptic('tick');
+  if (brightnessShortcut) closeSheets();
+  else showPage('settings-main');
+});
 document.querySelectorAll('#sleep-chips button').forEach(b => b.onclick = () => {
   const m = Number(b.dataset.m);
   send('sleeptimer', { m }, 'tap').then(refresh);

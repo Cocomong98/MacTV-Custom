@@ -20,6 +20,8 @@
   button:focus-visible { outline:3px solid #a5d6ff; outline-offset:3px; }
   .pressed { transform:scale(.93); }
   .round { width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--glass); -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--sheen); display:grid; place-items:center; }
+  #app-fullscreen[aria-pressed="true"] { color:#000; background:#fff; }
+  #app-fullscreen:disabled { opacity:.45; }
   /* tvOS focus: a press lights the control up as a white platter. */
   .round.pressed, .key.pressed, .pill.pressed, .row-btn.pressed { background:#fff; color:#000; }
   header { display:flex; align-items:center; justify-content:space-between; gap:12px; }

@@ -150,7 +150,8 @@ final class RemoteCoordinator: ObservableObject {
             "accessibilityAllowed": AXIsProcessTrusted(),
             "sleepMinutes": tv.sleepMinutesLeft,
         ]
-        state["displaySetup"] = ["displays": tv.displaySetup, "fullscreen": tv.window?.styleMask.contains(.fullScreen) ?? false]
+        state["displaySetup"] = ["displays": tv.displaySetup, "fullscreen": tv.window?.styleMask.contains(.fullScreen) ?? false,
+                                 "fullscreenChanging": tv.tvFullscreenChanging]
         state["speakerVolume"] = tv.audioCoordinator.remoteSpeakerState()
         state["displaysSleeping"] = tv.displaysSleeping
         state["websitePlayer"] = tv.browserPreferences.choice(for: tv.profile.id).rawValue
@@ -221,6 +222,16 @@ final class RemoteCoordinator: ObservableObject {
             guard let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any],
                   let id = body["id"] as? String, tv.selectTVDisplay(id: id) else {
                 return .json(["error": "Choose a connected display."], status: "400 Bad Request")
+            }
+            return .json(["ok": true])
+        }
+        if request.method == "POST", request.path == "/display/fullscreen" {
+            guard let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any],
+                  let value = body["fullscreen"] as? NSNumber, CFGetTypeID(value) == CFBooleanGetTypeID() else {
+                return .json(["error": "전체 화면 상태를 선택하세요."], status: "400 Bad Request")
+            }
+            guard tv.setTVWindowFullscreen(value.boolValue) else {
+                return .json(["error": "전체 화면을 전환할 수 없습니다. 잠시 뒤 다시 시도하세요."], status: "409 Conflict")
             }
             return .json(["ok": true])
         }

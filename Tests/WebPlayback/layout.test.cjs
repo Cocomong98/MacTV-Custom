@@ -61,7 +61,7 @@ async function run() {
   await call('Page.addScriptToEvaluateOnNewDocument', { source: `
     localStorage.setItem('mactvKey', 'a'.repeat(64));
     window.testState = { apps: [], autoSkip: false, autoNext: false,
-      keepMacAwake: false, lidOverride: false, displaySetup: { displays: [] },
+      keepMacAwake: false, lidOverride: false, displaySetup: { displays: [], fullscreen:false },
       speakerVolume: { id:13, name:'MacBook Air Speakers', value:42, muted:false } };
     window.sentCommands = [];
     window.volumeWrites = [];
@@ -70,9 +70,16 @@ async function run() {
       { id:'lg', name:'LG HDR 4K', value:50, method:'betterDisplay' },
       { id:'unavailable', name:'Other display', error:'No brightness available' }];
     window.brightnessWrites = [];
+    window.fullscreenWrites = [];
     window.fetch = async (path, options) => {
       if (window.remoteOffline) throw new Error('Disconnected');
       if (path === '/cmd') window.sentCommands.push(JSON.parse(options.body).a);
+      if (path === '/display/fullscreen') {
+        const { fullscreen } = JSON.parse(options.body);
+        fullscreenWrites.push(fullscreen);
+        testState.displaySetup.fullscreenChanging = true;
+        return { status:200, ok:true, json:async () => ({ ok:true }) };
+      }
       if (path === '/audio/volume') {
         const write = JSON.parse(options.body);
         window.volumeWrites.push(write);
@@ -144,11 +151,39 @@ async function run() {
     if (width === 390 && height === 844) await screenshot('390x844-text-sheet.png');
     await evaluate(`document.querySelector('#text-sheet [data-close]').click()`);
     if (width === 390 && height === 844) {
+      const fullscreen = await evaluate(`(async () => {
+        const button = document.querySelector('#app-fullscreen');
+        const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+        await refresh();
+        button.click(); button.click();
+        await settle();
+        const pending = button.disabled && button.getAttribute('aria-pressed') === 'false';
+        testState.displaySetup.fullscreen = true;
+        testState.displaySetup.fullscreenChanging = false;
+        await refresh();
+        const active = !button.disabled && button.getAttribute('aria-pressed') === 'true';
+        button.click();
+        await settle();
+        testState.displaySetup.fullscreen = false;
+        testState.displaySetup.fullscreenChanging = false;
+        await refresh();
+        const inactive = !button.disabled && button.getAttribute('aria-pressed') === 'false';
+        testState.guest = true;
+        await refresh();
+        const guestHidden = button.getBoundingClientRect().width === 0
+          && document.querySelector('#open-brightness').getBoundingClientRect().width === 0;
+        testState.guest = false;
+        await refresh();
+        return { pending, active, inactive, guestHidden, writes:fullscreenWrites };
+      })()`);
+      assert.deepEqual(fullscreen, { pending:true, active:true, inactive:true, guestHidden:true, writes:[true,false] });
       const brightness = await evaluate(`(async () => {
-        document.querySelector('#open-power').click();
-        document.querySelector('[data-page="page-display"]').click();
+        document.querySelector('#open-brightness').click();
         const settle = () => new Promise(resolve => setTimeout(resolve, 0));
         await settle();
+        if (document.activeElement.id !== 'brightness-label' || document.querySelector('#page-display').hidden) {
+          throw Error('Brightness shortcut must open and focus the same controls in one tap');
+        }
         const [builtIn, lg, unavailable] = [...document.querySelectorAll('#display-brightness input')];
         const wasEditable = !builtIn.disabled && !lg.disabled;
         const presets = [...lg.closest('.brightness-row').querySelectorAll('button')];
