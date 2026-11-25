@@ -44,6 +44,10 @@ Mac의 설정·제어 센터·팝업과 아이폰 웹 리모컨의 설정·조�
 
 각 단계에서 요구사항 ID, 변경 파일, 실행한 검증, 결과, 미검증 항목과 복귀 기준을 남긴다. 회귀가 발생하면 직전 정상 버전을 별도 사본에서 재현하고 변경 범위를 좁힌 뒤 재시도한다.
 
+## 홈에서 재생 이어가기
+
+`add-playback-resume`에서 내장 웹 플레이어를 홈으로 나갈 때 일시 정지한다. 다른 서비스를 연 뒤에도 최근 최대 3개 서비스의 페이지와 위치를 유지한다. 외부 브라우저에서 재생 상태를 읽고 일시 정지를 검증하는 방법은 추가 확인이 필요하다.
+
 ## 홈 상단 영역과 공통 UI · 로컬 구현
 
 Apple TV의 Top Shelf처럼 홈 첫 줄에서 초점을 맞춘 앱에 따라 상단 영역이 바뀌도록 한다. 외부 추천 데이터베이스 없이 한국어 홈과 아이폰 리모컨의 탐색 흐름을 검증한다. [Apple TV 탐색 안내](https://support.apple.com/ko-kr/guide/tv/atvbe55a4b4e/tvos) · [Apple Top Shelf 가이드](https://developer.apple.com/design/human-interface-guidelines/top-shelf)

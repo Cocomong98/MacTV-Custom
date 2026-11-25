@@ -10,6 +10,14 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
     // Web Playback
     @Published private(set) var webView: WKWebView?
     private var popups: [NSWindow] = []
+    private struct SuspendedWebPlayback {
+        let service: Service
+        let url: URL
+        let profileID: String?
+        let view: WKWebView
+    }
+    private var suspendedWebPlaybacks: [SuspendedWebPlayback] = []
+    private let suspendedWebPlaybackLimit = 3
 
     // Native Movie Playback
     @Published private(set) var moviePlayer: MoviePlayer?
@@ -88,14 +96,26 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         playbackRequest = UUID()
         currentLocalMovie = nil
         tv?.playerFailure = nil
-        let web = makeWebView(for: service)
-        web.load(URLRequest(url: url))
+        let web: WKWebView
+        if let index = suspendedWebPlaybacks.firstIndex(where: { $0.service.id == service.id }),
+           suspendedWebPlaybacks[index].url == url, suspendedWebPlaybacks[index].profileID == tv?.profile.id {
+            let suspended = suspendedWebPlaybacks.remove(at: index)
+            web = suspended.view
+            web.setAllMediaPlaybackSuspended(false, completionHandler: nil)
+        } else {
+            discardSuspendedWebPlaybacks(for: service.id)
+            web = makeWebView(for: service)
+            web.load(URLRequest(url: url))
+        }
         webView = web
         tv?.setMode(.player(service))
         tv?.clearPointer()
         tv?.displayCoordinator.holdPlaybackKeepAwake(reason: "Watching \(service.name) in Mac TV")
         tv?.bringToFront()
-        Task { @MainActor [weak self] in self?.tv?.window?.makeFirstResponder(web) }
+        Task { @MainActor [weak self, weak web] in
+            guard let self, let web, self.webView === web else { return }
+            self.tv?.window?.makeFirstResponder(web)
+        }
         tv?.showToast(notice)
     }
 
@@ -107,6 +127,30 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         webView = nil
         closePopups()
         tv?.displayCoordinator.releasePlaybackKeepAwake()
+    }
+
+    @discardableResult
+    func suspendWebPlayback(service: Service) -> Bool {
+        guard let web = webView, tv?.playerFailure == nil, case .web(let url) = service.kind else { return false }
+        discardSuspendedWebPlaybacks(for: service.id)
+        // Pause before suspending so reopening returns to the same position, ready for Play.
+        web.pauseAllMediaPlayback(completionHandler: nil)
+        web.setAllMediaPlaybackSuspended(true, completionHandler: nil)
+        suspendedWebPlaybacks.append(SuspendedWebPlayback(service: service, url: url, profileID: tv?.profile.id, view: web))
+        if suspendedWebPlaybacks.count > suspendedWebPlaybackLimit {
+            suspendedWebPlaybacks.removeFirst().view.stopLoading()
+        }
+        webView = nil
+        closePopups()
+        return true
+    }
+
+    func discardSuspendedWebPlaybacks(for serviceID: String? = nil) {
+        suspendedWebPlaybacks.removeAll { session in
+            guard serviceID == nil || serviceID == session.service.id else { return false }
+            session.view.stopLoading()
+            return true
+        }
     }
 
     private func closePopups() {
@@ -477,6 +521,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
 
     /// Plays the site in the chosen browser's app-mode window, placed on the TV like Mac TV's own player.
     func playInBrowser(_ bundleID: String, name: String, service: Service, url: URL) {
+        discardSuspendedWebPlaybacks(for: service.id)
         closeExternalBrowser()
         webView?.pauseAllMediaPlayback(completionHandler: nil)
         webView?.stopLoading()
@@ -612,7 +657,12 @@ extension PlaybackCoordinator: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         tv?.recordPlayerFailure(webView, error: error)
     }
-    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { tv?.recordPlayerFailure(webView) }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        if let index = suspendedWebPlaybacks.firstIndex(where: { $0.view === webView }) {
+            suspendedWebPlaybacks.remove(at: index)
+        }
+        else { tv?.recordPlayerFailure(webView) }
+    }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         if webView === self.webView {
             tv?.playerFailure = nil
@@ -622,7 +672,11 @@ extension PlaybackCoordinator: WKNavigationDelegate {
         guard navigationAction.targetFrame?.isMainFrame ?? true, let host = navigationAction.request.url?.host() else { return .allow }
         let signingIn = host == "accounts.google.com" || host.hasSuffix(".accounts.google.com")
         var usual = UserAgent.safari
-        if case .player(let service) = tv?.mode { usual = service.userAgent }
+        if let suspended = suspendedWebPlaybacks.first(where: { $0.view === webView }) {
+            usual = suspended.service.userAgent
+        } else if case .player(let service) = tv?.mode {
+            usual = service.userAgent
+        }
         let wanted = signingIn ? UserAgent.googleSignIn : usual
         if webView.customUserAgent != wanted { webView.customUserAgent = wanted }
         return .allow
