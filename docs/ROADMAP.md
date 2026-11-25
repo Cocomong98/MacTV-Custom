@@ -44,6 +44,10 @@ Mac의 설정·제어 센터·팝업과 아이폰 웹 리모컨의 설정·조�
 
 각 단계에서 요구사항 ID, 변경 파일, 실행한 검증, 결과, 미검증 항목과 복귀 기준을 남긴다. 회귀가 발생하면 직전 정상 버전을 별도 사본에서 재현하고 변경 범위를 좁힌 뒤 재시도한다.
 
+## 앱 내 업데이트 · 공개판
+
+`add-in-app-updates`에서 CouchDial의 **설정 → 앱 정보 → 업데이트 확인**과 **업데이트 및 재시작**을 구현했다. GitHub 정식 릴리스만 조회하고 SHA‑256, 앱 버전, 번들 ID와 서명이 맞을 때 교체한다. 같은 서명의 연속 버전으로 기존 Homebrew 설치본의 실행 승인·설정·OTT 로그인·페어링이 이어지는지 공개 전 확인한다.
+
 ## 홈 상단 영역과 공통 UI · 로컬 구현
 
 Apple TV의 Top Shelf처럼 홈 첫 줄에서 초점을 맞춘 앱에 따라 상단 영역이 바뀌도록 한다. 외부 추천 데이터베이스 없이 한국어 홈과 아이폰 리모컨의 탐색 흐름을 검증한다. [Apple TV 탐색 안내](https://support.apple.com/ko-kr/guide/tv/atvbe55a4b4e/tvos) · [Apple Top Shelf 가이드](https://developer.apple.com/design/human-interface-guidelines/top-shelf)
