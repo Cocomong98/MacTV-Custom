@@ -4,6 +4,22 @@ import Testing
 
 @Suite @MainActor
 struct RemoteAddressTests {
+    @Test func youTubeSkipIsLimitedToVideoPagesAndHasDedicatedCommands() throws {
+        for address in ["https://www.youtube.com/watch?v=sample", "https://www.youtube.com/tv#/watch?v=sample"] {
+            #expect(PlaybackCoordinator.isYouTubeWatchPage(try #require(URL(string: address))))
+        }
+        for address in ["https://www.youtube.com/tv#/search?", "https://www.youtube.com/",
+                        "https://www.youtube.com/tv#/watch-later", "https://example.com/watch?v=sample"] {
+            #expect(!PlaybackCoordinator.isYouTubeWatchPage(try #require(URL(string: address))))
+        }
+        guard case .seekYouTube(forward: true) = RemoteCommand(json: ["a": "forward15"]),
+              case .seekYouTube(forward: false) = RemoteCommand(json: ["a": "rewind15"]),
+              case .seek(forward: true) = RemoteCommand(json: ["a": "forward"]) else {
+            Issue.record("Dedicated YouTube and generic seek commands must decode separately")
+            return
+        }
+    }
+
     private func server(origins: [String]) -> RemoteServer {
         RemoteServer(token: "unused", onCommand: { _ in }, state: { [:] }, icon: { _ in nil }, routes: { _ in nil },
                      ownOrigins: { origins })

@@ -4,7 +4,48 @@ import Foundation
 import Testing
 @testable import MacTV
 
+@MainActor private final class FullscreenTestWindow: NSWindow {
+    var fullscreenToggles = 0
+
+    override func toggleFullScreen(_ sender: Any?) {
+        fullscreenToggles += 1
+    }
+}
+
 @Suite @MainActor struct DisplaySetupTests {
+    @Test func fullscreenRouteRequiresTrustAndAnExplicitBoolean() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let tv = TVController(library: AppLibrary(folder: folder))
+        let pairing = PairingStore(folder: folder)
+        let trusted = try pairing.issue(name: "Trusted", guest: false)
+        let guest = try pairing.issue(name: "Guest", guest: true)
+        let server = RemoteServer(token: "", onCommand: { _ in }, state: { [:] }, icon: { _ in nil },
+                                  routes: { tv.handleAppsRequest($0) }, pairing: pairing)
+        func request(_ token: String?, value: String) -> String {
+            let body = Data(#"{"fullscreen":\#(value)}"#.utf8)
+            return server.respond(to: HTTPRequest(method: "POST", path: "/display/fullscreen", query: [:],
+                                                   headers: token.map { ["x-couch-key": $0] } ?? [:], body: body)).status
+        }
+        #expect(request(nil, value: "true") == "401 Unauthorized")
+        #expect(request(guest, value: "true") == "403 Forbidden")
+        #expect(request(trusted, value: "1") == "400 Bad Request")
+        #expect(request(trusted, value: "true") == "409 Conflict")
+        _ = NSApplication.shared
+        let window = FullscreenTestWindow(contentRect: .init(x: 0, y: 0, width: 640, height: 360),
+                                          styleMask: [.titled, .resizable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        tv.window = window
+        let mode = TVMode(window: window, tv: tv)
+        defer { window.close() }
+        #expect(request(trusted, value: "false") == "200 OK")
+        #expect(window.fullscreenToggles == 0)
+        #expect(request(trusted, value: "true") == "200 OK")
+        #expect(mode.fullscreenChanging)
+        #expect(request(trusted, value: "true") == "409 Conflict")
+        #expect(window.fullscreenToggles == 1)
+    }
+
     @Test func brightnessRouteRequiresTrustedDeviceAndRejectsInvalidValuesOrTargets() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

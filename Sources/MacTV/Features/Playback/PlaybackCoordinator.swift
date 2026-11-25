@@ -10,6 +10,14 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
     // Web Playback
     @Published private(set) var webView: WKWebView?
     private var popups: [NSWindow] = []
+    private struct SuspendedWebPlayback {
+        let service: Service
+        let url: URL
+        let profileID: String?
+        let view: WKWebView
+    }
+    private var suspendedWebPlaybacks: [SuspendedWebPlayback] = []
+    private let suspendedWebPlaybackLimit = 3
 
     // Native Movie Playback
     @Published private(set) var moviePlayer: MoviePlayer?
@@ -28,6 +36,8 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
     @Published private(set) var externalBrowserOpening = false
 
     private var playbackRequest = UUID()
+    private var youtubeSeekProbeInFlight = false
+    private var youtubeSeekResult: (request: UUID, page: URL, available: Bool)?
 
     private let jellyfin: JellyfinServers
 
@@ -88,14 +98,26 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         playbackRequest = UUID()
         currentLocalMovie = nil
         tv?.playerFailure = nil
-        let web = makeWebView(for: service)
-        web.load(URLRequest(url: url))
+        let web: WKWebView
+        if let index = suspendedWebPlaybacks.firstIndex(where: { $0.service.id == service.id }),
+           suspendedWebPlaybacks[index].url == url, suspendedWebPlaybacks[index].profileID == tv?.profile.id {
+            let suspended = suspendedWebPlaybacks.remove(at: index)
+            web = suspended.view
+            web.setAllMediaPlaybackSuspended(false, completionHandler: nil)
+        } else {
+            discardSuspendedWebPlaybacks(for: service.id)
+            web = makeWebView(for: service)
+            web.load(URLRequest(url: url))
+        }
         webView = web
         tv?.setMode(.player(service))
         tv?.clearPointer()
         tv?.displayCoordinator.holdPlaybackKeepAwake(reason: "Watching \(service.name) in Mac TV")
         tv?.bringToFront()
-        Task { @MainActor [weak self] in self?.tv?.window?.makeFirstResponder(web) }
+        Task { @MainActor [weak self, weak web] in
+            guard let self, let web, self.webView === web else { return }
+            self.tv?.window?.makeFirstResponder(web)
+        }
         tv?.showToast(notice)
     }
 
@@ -107,6 +129,30 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         webView = nil
         closePopups()
         tv?.displayCoordinator.releasePlaybackKeepAwake()
+    }
+
+    @discardableResult
+    func suspendWebPlayback(service: Service) -> Bool {
+        guard let web = webView, tv?.playerFailure == nil, case .web(let url) = service.kind else { return false }
+        discardSuspendedWebPlaybacks(for: service.id)
+        // Pause before suspending so reopening returns to the same position, ready for Play.
+        web.pauseAllMediaPlayback(completionHandler: nil)
+        web.setAllMediaPlaybackSuspended(true, completionHandler: nil)
+        suspendedWebPlaybacks.append(SuspendedWebPlayback(service: service, url: url, profileID: tv?.profile.id, view: web))
+        if suspendedWebPlaybacks.count > suspendedWebPlaybackLimit {
+            suspendedWebPlaybacks.removeFirst().view.stopLoading()
+        }
+        webView = nil
+        closePopups()
+        return true
+    }
+
+    func discardSuspendedWebPlaybacks(for serviceID: String? = nil) {
+        suspendedWebPlaybacks.removeAll { session in
+            guard serviceID == nil || serviceID == session.service.id else { return false }
+            session.view.stopLoading()
+            return true
+        }
     }
 
     private func closePopups() {
@@ -143,19 +189,58 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         return web
     }
 
-    func runWebPlayback(_ action: String, in web: WKWebView, fallback: Key) {
+    func runWebPlayback(_ action: String, in web: WKWebView, fallback: Key? = nil) {
         Task { @MainActor [weak self, weak web] in
             guard let web else { return }
             do {
                 let value = try await web.callAsyncJavaScript("return await window.__macTVPlayback(action)",
                     arguments: ["action": action], contentWorld: .page)
                 guard self?.webView === web else { return }
-                if value as? String == "none" { self?.sendKey(fallback, to: web) }
-                else if value as? String == "unsupported" { self?.tv?.showToast("웹사이트가 이 조작을 지원하지 않습니다. 재생 화면의 버튼을 사용하세요.") }
+                let result = value as? String
+                if result == "none", let fallback { self?.sendKey(fallback, to: web) }
+                else if result == "unsupported" || (result == "none" && fallback == nil) {
+                    self?.tv?.showToast("웹사이트가 이 조작을 지원하지 않습니다. 재생 화면의 버튼을 사용하세요.")
+                }
             } catch {
-                if self?.webView === web { self?.sendKey(fallback, to: web) }
+                guard self?.webView === web else { return }
+                if let fallback { self?.sendKey(fallback, to: web) }
+                else { self?.tv?.showToast("현재 영상의 재생 위치를 바꿀 수 없습니다.") }
             }
         }
+    }
+
+    private func youtubeWatchPage() -> URL? {
+        guard case .player(let service) = tv?.mode, service.id == "youtube",
+              tv?.playerFailure == nil, let url = webView?.url, Self.isYouTubeWatchPage(url) else { return nil }
+        return url
+    }
+
+    static func isYouTubeWatchPage(_ url: URL) -> Bool {
+        guard url.scheme == "https", url.host == "www.youtube.com" || url.host == "youtube.com" else { return false }
+        if url.path == "/watch" { return true }
+        return url.path == "/tv" && url.fragment?.split(separator: "?", maxSplits: 1).first == "/watch"
+    }
+
+    func youtubeSeekAvailable() -> Bool {
+        guard let web = webView, let page = youtubeWatchPage() else {
+            youtubeSeekResult = nil
+            return false
+        }
+        let request = playbackRequest
+        if !youtubeSeekProbeInFlight {
+            youtubeSeekProbeInFlight = true
+            Task { @MainActor [weak self, weak web] in
+                guard let self else { return }
+                defer { self.youtubeSeekProbeInFlight = false }
+                guard let web else { return }
+                let result = try? await web.callAsyncJavaScript("return await window.__macTVPlayback('canSeek')",
+                    arguments: [:], contentWorld: .page)
+                guard self.webView === web, self.playbackRequest == request, self.youtubeWatchPage() == page else { return }
+                self.youtubeSeekResult = (request, page, result as? String == "seekable")
+            }
+        }
+        guard let result = youtubeSeekResult, result.request == request, result.page == page else { return false }
+        return result.available
     }
 
     func sendKey(_ key: Key, to web: WKWebView) {
@@ -170,6 +255,23 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
             else { continue }
             window.sendEvent(event)
         }
+    }
+
+    /// YouTube's TV search display is a button driven by its on-screen keyboard.
+    /// Its search deep link accepts the complete query without emulating key presses.
+    static func youTubeTVSearchURL(from url: URL?, text: String) -> URL? {
+        guard let url, url.scheme == "https", url.host == "www.youtube.com", url.path == "/tv",
+              let screen = url.fragment?.split(separator: "?", maxSplits: 1).first, screen == "/search",
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        var query = URLComponents()
+        query.queryItems = [URLQueryItem(name: "q", value: text)]
+        // A literal plus is decoded as a space by YouTube's query parser.
+        guard let encoded = query.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+            .replacingOccurrences(of: "#", with: "%23"),
+              var destination = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        // Changing only the fragment lets YouTube TV handle the search in the current document.
+        destination.percentEncodedFragment = "/search?" + encoded
+        return destination.url
     }
 
     func scrollPage(_ web: WKWebView, by dy: Double) {
@@ -205,10 +307,19 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         case .seek(let forward):
             if service.id == "netflix" { sendKey(forward ? .right : .left, to: web) }
             else { runWebPlayback(forward ? "forward" : "backward", in: web, fallback: forward ? .right : .left) }
+        case .seekYouTube(let forward):
+            guard youtubeWatchPage() != nil else { return }
+            runWebPlayback(forward ? "forward15" : "backward15", in: web)
         case .text(let text):
-            for character in text {
-                sendKey(character == "\n" ? .enter : Key(code: 0, chars: String(character)), to: web)
+            if service.id == "youtube", let searchURL = Self.youTubeTVSearchURL(from: web.url, text: text) {
+                web.load(URLRequest(url: searchURL))
+                return
             }
+            guard let window = tv?.window else { return }
+            if window.firstResponder !== web, !window.makeFirstResponder(web) { return }
+            // Send committed text through WebKit's editor. A synthetic A key can become
+            // an actual "a" in sites that read the physical key instead of its characters.
+            web.inputContext?.client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: 0))
         case .deleteBackward: sendKey(.delete, to: web)
         case .pointer(let dx, let dy): tv?.movePointer(dx: dx, dy: dy)
         case .click: tv?.clickPointer()
@@ -477,6 +588,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
 
     /// Plays the site in the chosen browser's app-mode window, placed on the TV like Mac TV's own player.
     func playInBrowser(_ bundleID: String, name: String, service: Service, url: URL) {
+        discardSuspendedWebPlaybacks(for: service.id)
         closeExternalBrowser()
         webView?.pauseAllMediaPlayback(completionHandler: nil)
         webView?.stopLoading()
@@ -612,7 +724,12 @@ extension PlaybackCoordinator: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         tv?.recordPlayerFailure(webView, error: error)
     }
-    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { tv?.recordPlayerFailure(webView) }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        if let index = suspendedWebPlaybacks.firstIndex(where: { $0.view === webView }) {
+            suspendedWebPlaybacks.remove(at: index)
+        }
+        else { tv?.recordPlayerFailure(webView) }
+    }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         if webView === self.webView {
             tv?.playerFailure = nil
@@ -622,7 +739,11 @@ extension PlaybackCoordinator: WKNavigationDelegate {
         guard navigationAction.targetFrame?.isMainFrame ?? true, let host = navigationAction.request.url?.host() else { return .allow }
         let signingIn = host == "accounts.google.com" || host.hasSuffix(".accounts.google.com")
         var usual = UserAgent.safari
-        if case .player(let service) = tv?.mode { usual = service.userAgent }
+        if let suspended = suspendedWebPlaybacks.first(where: { $0.view === webView }) {
+            usual = suspended.service.userAgent
+        } else if case .player(let service) = tv?.mode {
+            usual = service.userAgent
+        }
         let wanted = signingIn ? UserAgent.googleSignIn : usual
         if webView.customUserAgent != wanted { webView.customUserAgent = wanted }
         return .allow

@@ -22,6 +22,8 @@ MACTV_SIGN_IDENTITY=00965DC4A85ABD2B8C0994FC18D46BE39931E849 bash scripts/make-c
 
 첫 Cask 버전에서 한 번 실행을 승인하고, 같은 Cask의 다음 버전으로 업데이트해 macOS 실행 승인이 이어지는지 확인한다.
 
+앱 내 업데이트를 지원하는 공개판은 GitHub의 최신 정식 릴리스에서 `CouchDial-<버전>.dmg`와 GitHub가 제공하는 SHA‑256을 조회한다. 같은 서명 요건과 번들 ID로 검증한 뒤 설치한다. 첫 지원 버전은 기존 공개 DMG 또는 Cask로 설치해야 한다. Cask의 `auto_updates` 선언 여부는 기존 Homebrew 설치본에서 앱 내 업데이트와 이후 Homebrew 동작을 확인한 뒤 결정한다.
+
 ## 로컬 확인
 
 ```bash
