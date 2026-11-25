@@ -1,6 +1,6 @@
 cask "mactv-custom" do
-  version "0.3.0"
-  sha256 "d3ba974fb6786d2e111c43e003896c34142c7fb96f078cb93a98b5283efda9eb"
+  version "0.3.1"
+  sha256 "95955be5ae40d47edbc137777763542a9fa9c0fa599003607f860f5655aa5a8b"
 
   url "https://github.com/Cocomong98/MacTV-Custom/releases/download/v#{version}/CouchDial-#{version}.dmg"
   name "CouchDial"

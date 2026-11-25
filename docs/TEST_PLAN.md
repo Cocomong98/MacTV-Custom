@@ -188,3 +188,5 @@ MACTV_DATA_DIR="$test_root/data" \
 - 최초 연결의 소유자·게스트 QR은 Mac의 IPv4와 실제 리모컨 포트를 사용하도록 변경했다. Mac의 `.local` 주소를 재연결 후보로 유지하고, 자동 이동 전 리모컨이 응답을 확인하는 동작을 유지했다.
 - `MACTV_LIVE_REMOTE_TEST=1 bash scripts/test-custom.sh`에서 Swift 144개와 웹 테스트 8종을 통과했다. Wi-Fi 주소와 재연결 후보, 실제 Mac WebKit에서 페어링을 유지한 Bonjour 이동, `.local` 조회 실패 시 주소를 바꾸지 않는 웹 경로를 검증했다. 서명된 Apple Silicon·Intel 로컬 앱을 빌드했다. 신고 기기의 iPhone Safari 실기기 재검증은 남아 있다.
 - 공개판 테스트 DMG를 읽기 전용으로 마운트해 체크섬, 서명과 공개판 번들 ID를 확인했다. CouchDial Local도 다시 빌드해 서명, 두 아키텍처와 개인용 리소스를 확인했다. 신고 기기에서 설치할 수 있도록 수정본은 공개 패치로 배포하며, 해당 환경의 재현 결과는 별도로 기록한다.
+
+- 0.3.1 공개 DMG를 읽기 전용으로 마운트해 버전, 서명, 두 아키텍처와 공개판 번들 ID를 확인했다. 공개 다운로드가 검증본과 일치했고, Homebrew Cask에는 새 파일의 SHA‑256을 기록했다.
