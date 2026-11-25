@@ -116,6 +116,7 @@ function online(ok, sleeping = false) {
   $('.status').hidden = ok && !sleeping;
   // A Mac that's fully asleep is off the network; only its own keyboard, trackpad or lid wakes it.
   $('#status').textContent = !ok ? 'Mac에 연결할 수 없습니다. 잠자기 상태라면 키보드를 누르거나 덮개를 열어 깨우세요.' : sleeping ? '화면 잠자기 중 · 조작하면 깨어납니다' : '';
+  if (!ok) updateSeekButtons(false);
   if (changed && !ok) {
     brightnessRevision++;
     for (const row of brightnessRows.values()) {
@@ -264,6 +265,7 @@ async function readState() {
     const focused = appFocus();
     apps = s.apps;
     currentLocalMovie = s.currentLocalMovie || null;
+    updateSeekButtons(s.current?.id === 'youtube' && s.youtubeSeekSeconds === 15);
     tvSheet = typeof s.sheet === 'string' ? s.sheet : '';
     iinaInstalled = !!s.iinaInstalled;
     updateMovieOptions();
@@ -1070,7 +1072,20 @@ $('#revoke-all').onclick = async () => {
 };
 
 // Buttons
-document.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => send(b.dataset.a, {}, b.dataset.h || 'tick')));
+const seekButtons = document.querySelectorAll('[data-seek]');
+function updateSeekButtons(available) {
+  for (const button of seekButtons) {
+    const action = button.dataset.seek;
+    button.dataset.a = available ? action + '15' : action;
+    button.classList.toggle('youtube-seek', available);
+    button.querySelector('.seek-seconds').hidden = !available;
+    button.setAttribute('aria-label', (available ? '15초' : '10초') + (action === 'rewind' ? ' 뒤로' : ' 앞으로'));
+  }
+}
+document.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.a === 'home') updateSeekButtons(false);
+  send(b.dataset.a, {}, b.dataset.h || 'tick');
+}));
 $('#browser-retry').onclick = () => send('retrybrowser', {}, 'tap').then(refresh);
 let websiteOpening = false;
 $('#open-website').onsubmit = async e => {

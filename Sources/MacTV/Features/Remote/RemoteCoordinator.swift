@@ -179,6 +179,7 @@ final class RemoteCoordinator: ObservableObject {
         if case .player(let service) = tv.mode {
             state["mode"] = "player"
             state["current"] = ["id": service.id, "name": service.name]
+            if tv.playbackCoordinator.youtubeSeekAvailable() { state["youtubeSeekSeconds"] = 15 }
         } else if tv.mode == .movie, let player = tv.moviePlayer {
             state["mode"] = "player"
             state["current"] = ["id": "movies", "name": player.movie.displayTitle]
@@ -193,7 +194,7 @@ final class RemoteCoordinator: ObservableObject {
     @discardableResult
     func handleGuestCommand(_ command: RemoteCommand) -> Bool {
         switch command {
-        case .home, .playPause, .seek, .volume, .mute, .activateBrowser, .browserFullscreen:
+        case .home, .playPause, .seek, .seekYouTube, .volume, .mute, .activateBrowser, .browserFullscreen:
             tv?.handle(command, from: .remote)
             return true
         default: return false

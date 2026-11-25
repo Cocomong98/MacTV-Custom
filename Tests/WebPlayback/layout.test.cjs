@@ -243,6 +243,25 @@ async function run() {
       assert.ok(sound.offline && sound.reconnected);
       await evaluate(`document.querySelector('#power-sheet [data-close]').click()`);
     }
+    const seek = await evaluate(`(async () => {
+      const keys = [...document.querySelectorAll('[data-seek]')];
+      testState.current = { id:'youtube' };
+      testState.youtubeSeekSeconds = 15;
+      await refresh();
+      const labels = keys.map(key => key.getAttribute('aria-label'));
+      const shown = keys.every(key => !key.querySelector('.seek-seconds').hidden && key.getBoundingClientRect().height >= 44);
+      keys.forEach(key => key.click());
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const commands = sentCommands.slice(-2);
+      document.querySelector('[data-a="home"]').click();
+      const hiddenOnHome = keys.every(key => key.querySelector('.seek-seconds').hidden);
+      testState.current = { id:'netflix' };
+      await refresh();
+      const otherService = keys.map(key => key.dataset.a);
+      return { labels, shown, commands, hiddenOnHome, otherService };
+    })()`);
+    assert.deepEqual(seek, { labels:['15초 뒤로','15초 앞으로'], shown:true, commands:['rewind15','forward15'],
+      hiddenOnHome:true, otherService:['rewind','forward'] });
     console.log(`PASS remote layout ${width}x${height}`);
   }
 }

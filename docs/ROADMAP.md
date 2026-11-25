@@ -44,6 +44,10 @@ Mac의 설정·제어 센터·팝업과 아이폰 웹 리모컨의 설정·조�
 
 각 단계에서 요구사항 ID, 변경 파일, 실행한 검증, 결과, 미검증 항목과 복귀 기준을 남긴다. 회귀가 발생하면 직전 정상 버전을 별도 사본에서 재현하고 변경 범위를 좁힌 뒤 재시도한다.
 
+## 서비스별 리모컨 재생 조작
+
+`add-playback-remote-controls`에서 내장 플레이어에 탐색 가능한 YouTube 영상이 열리면 기존 건너뛰기 위치에 **15초 뒤로·앞으로**를 표시한다. 홈과 다른 서비스에서는 기존 조작을 사용한다. 외부 브라우저와 다른 서비스의 전용 버튼은 재생 상태와 실제 조작 범위를 확인한 뒤 추가한다.
+
 ## 홈 상단 영역과 공통 UI · 로컬 구현
 
 Apple TV의 Top Shelf처럼 홈 첫 줄에서 초점을 맞춘 앱에 따라 상단 영역이 바뀌도록 한다. 외부 추천 데이터베이스 없이 한국어 홈과 아이폰 리모컨의 탐색 흐름을 검증한다. [Apple TV 탐색 안내](https://support.apple.com/ko-kr/guide/tv/atvbe55a4b4e/tvos) · [Apple Top Shelf 가이드](https://developer.apple.com/design/human-interface-guidelines/top-shelf)

@@ -28,6 +28,8 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
     @Published private(set) var externalBrowserOpening = false
 
     private var playbackRequest = UUID()
+    private var youtubeSeekProbeInFlight = false
+    private var youtubeSeekResult: (request: UUID, page: URL, available: Bool)?
 
     private let jellyfin: JellyfinServers
 
@@ -143,19 +145,58 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         return web
     }
 
-    func runWebPlayback(_ action: String, in web: WKWebView, fallback: Key) {
+    func runWebPlayback(_ action: String, in web: WKWebView, fallback: Key? = nil) {
         Task { @MainActor [weak self, weak web] in
             guard let web else { return }
             do {
                 let value = try await web.callAsyncJavaScript("return await window.__macTVPlayback(action)",
                     arguments: ["action": action], contentWorld: .page)
                 guard self?.webView === web else { return }
-                if value as? String == "none" { self?.sendKey(fallback, to: web) }
-                else if value as? String == "unsupported" { self?.tv?.showToast("웹사이트가 이 조작을 지원하지 않습니다. 재생 화면의 버튼을 사용하세요.") }
+                let result = value as? String
+                if result == "none", let fallback { self?.sendKey(fallback, to: web) }
+                else if result == "unsupported" || (result == "none" && fallback == nil) {
+                    self?.tv?.showToast("웹사이트가 이 조작을 지원하지 않습니다. 재생 화면의 버튼을 사용하세요.")
+                }
             } catch {
-                if self?.webView === web { self?.sendKey(fallback, to: web) }
+                guard self?.webView === web else { return }
+                if let fallback { self?.sendKey(fallback, to: web) }
+                else { self?.tv?.showToast("현재 영상의 재생 위치를 바꿀 수 없습니다.") }
             }
         }
+    }
+
+    private func youtubeWatchPage() -> URL? {
+        guard case .player(let service) = tv?.mode, service.id == "youtube",
+              tv?.playerFailure == nil, let url = webView?.url, Self.isYouTubeWatchPage(url) else { return nil }
+        return url
+    }
+
+    static func isYouTubeWatchPage(_ url: URL) -> Bool {
+        guard url.scheme == "https", url.host == "www.youtube.com" || url.host == "youtube.com" else { return false }
+        if url.path == "/watch" { return true }
+        return url.path == "/tv" && url.fragment?.split(separator: "?", maxSplits: 1).first == "/watch"
+    }
+
+    func youtubeSeekAvailable() -> Bool {
+        guard let web = webView, let page = youtubeWatchPage() else {
+            youtubeSeekResult = nil
+            return false
+        }
+        let request = playbackRequest
+        if !youtubeSeekProbeInFlight {
+            youtubeSeekProbeInFlight = true
+            Task { @MainActor [weak self, weak web] in
+                guard let self else { return }
+                defer { self.youtubeSeekProbeInFlight = false }
+                guard let web else { return }
+                let result = try? await web.callAsyncJavaScript("return await window.__macTVPlayback('canSeek')",
+                    arguments: [:], contentWorld: .page)
+                guard self.webView === web, self.playbackRequest == request, self.youtubeWatchPage() == page else { return }
+                self.youtubeSeekResult = (request, page, result as? String == "seekable")
+            }
+        }
+        guard let result = youtubeSeekResult, result.request == request, result.page == page else { return false }
+        return result.available
     }
 
     func sendKey(_ key: Key, to web: WKWebView) {
@@ -205,6 +246,9 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         case .seek(let forward):
             if service.id == "netflix" { sendKey(forward ? .right : .left, to: web) }
             else { runWebPlayback(forward ? "forward" : "backward", in: web, fallback: forward ? .right : .left) }
+        case .seekYouTube(let forward):
+            guard youtubeWatchPage() != nil else { return }
+            runWebPlayback(forward ? "forward15" : "backward15", in: web)
         case .text(let text):
             for character in text {
                 sendKey(character == "\n" ? .enter : Key(code: 0, chars: String(character)), to: web)

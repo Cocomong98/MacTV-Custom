@@ -431,7 +431,7 @@ final class RemoteServer {
     }
     private static func guestAllowsWithoutContext(_ command: RemoteCommand) -> Bool {
         switch command {
-        case .home, .playPause, .seek, .volume, .mute, .activateBrowser, .browserFullscreen:
+        case .home, .playPause, .seek, .seekYouTube, .volume, .mute, .activateBrowser, .browserFullscreen:
             return true
         default: return false
         }
@@ -439,7 +439,7 @@ final class RemoteServer {
 
     private static func guestAllows(_ command: RemoteCommand) -> Bool {
         switch command {
-        case .move, .select, .selectDown, .selectUp, .back, .home, .playPause, .seek, .volume, .mute,
+        case .move, .select, .selectDown, .selectUp, .back, .home, .playPause, .seek, .seekYouTube, .volume, .mute,
              .text, .deleteBackward, .pointer, .click, .scroll, .nextControl, .previousControl,
              .activateBrowser, .browserFullscreen, .retryBrowser:
             return true

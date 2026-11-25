@@ -6,6 +6,7 @@ enum RemoteCommand {
 
     case move(Direction), select, selectDown, selectUp, back, home
     case playPause, seek(forward: Bool)
+    case seekYouTube(forward: Bool)
     case volume(Int), mute
     case text(String), deleteBackward
     case pointer(dx: Double, dy: Double), click, scroll(dy: Double)
@@ -28,6 +29,8 @@ enum RemoteCommand {
         case "playpause": self = .playPause
         case "rewind": self = .seek(forward: false)
         case "forward": self = .seek(forward: true)
+        case "rewind15": self = .seekYouTube(forward: false)
+        case "forward15": self = .seekYouTube(forward: true)
         case "volup": self = .volume(6)
         case "voldown": self = .volume(-6)
         case "mute": self = .mute
