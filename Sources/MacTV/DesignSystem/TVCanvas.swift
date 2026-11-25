@@ -4,11 +4,20 @@ private struct CanvasSizeKey: EnvironmentKey {
     static let defaultValue = CGSize(width: 1920, height: 1080)
 }
 
+private struct CanvasPixelsKey: EnvironmentKey {
+    static let defaultValue = CGSize(width: 1920, height: 1080)
+}
+
 extension EnvironmentValues {
     /// The TV canvas in points: 1920×1080 at 16:9, taller or wider for other window shapes.
     var canvasSize: CGSize {
         get { self[CanvasSizeKey.self] }
         set { self[CanvasSizeKey.self] = newValue }
+    }
+
+    var canvasPixels: CGSize {
+        get { self[CanvasPixelsKey.self] }
+        set { self[CanvasPixelsKey.self] = newValue }
     }
 }
 
@@ -17,6 +26,7 @@ extension EnvironmentValues {
 /// window with no bars.
 struct TVCanvas<Content: View>: View {
     @ViewBuilder var content: Content
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         GeometryReader { geo in
@@ -25,11 +35,19 @@ struct TVCanvas<Content: View>: View {
             let canvas = CGSize(width: window.width / scale, height: window.height / scale)
             content
                 .environment(\.canvasSize, canvas)
+                .environment(\.canvasPixels, CGSize(width: window.width * displayScale, height: window.height * displayScale))
                 .frame(width: canvas.width, height: canvas.height)
                 .scaleEffect(scale)
                 .frame(width: window.width, height: window.height)
         }
     }
+}
+
+enum TVLayout {
+    static let edge: CGFloat = 96
+    static let tileRadius: CGFloat = 24
+    static let panelRadius: CGFloat = 42
+    static let secondaryText = Color.white.opacity(0.74)
 }
 
 struct Wallpaper: View {
@@ -46,8 +64,9 @@ struct Wallpaper: View {
 struct SheetBackdrop: View {
     var body: some View {
         ZStack {
-            Color.black.opacity(0.35)
             Rectangle().fill(.ultraThinMaterial)
+            LinearGradient(colors: [.black.opacity(0.48), .black.opacity(0.72)],
+                           startPoint: .top, endPoint: .bottom)
         }
         .ignoresSafeArea()
     }

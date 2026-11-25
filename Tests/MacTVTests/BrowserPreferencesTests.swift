@@ -96,20 +96,20 @@ struct BrowserPreferencesTests {
 @Suite @MainActor
 struct WebsitePlayerTests {
     @Test
-    func youtubeTileKeepsTVModeWithAnExternalWebsitePlayer() throws {
+    func youtubeTileUsesTheDesktopWebsiteAndConfiguredPlayer() throws {
         try withController { tv in
             let external = BrowserChoice.app("com.google.Chrome")
             tv.browserPreferences.setChoice(external, for: tv.profile.id)
             let youtube = try #require(tv.services.first { $0.id == "youtube" })
-            let tvURL = try #require(URL(string: "https://www.youtube.com/tv"))
+            let desktopURL = try #require(URL(string: "https://www.youtube.com/"))
             let search = try #require(URL(string: "https://www.youtube.com/results?search_query=music"))
             let netflix = try #require(tv.services.first { $0.id == "netflix" })
             let netflixURL = try #require(URL(string: "https://www.netflix.com/browse"))
 
-            #expect(youtube.kind == .web(tvURL))
-            #expect(youtube.userAgent == UserAgent.smartTV)
-            #expect(!youtube.dpadNavigation)
-            #expect(tv.playbackCoordinator.websitePlayer(for: youtube, url: tvURL) == .embedded)
+            #expect(youtube.kind == .web(desktopURL))
+            #expect(youtube.userAgent == UserAgent.safari)
+            #expect(youtube.dpadNavigation)
+            #expect(tv.playbackCoordinator.websitePlayer(for: youtube, url: desktopURL) == external)
             #expect(tv.playbackCoordinator.websitePlayer(for: youtube, url: search) == external)
             #expect(tv.playbackCoordinator.websitePlayer(for: netflix, url: netflixURL) == external)
         }

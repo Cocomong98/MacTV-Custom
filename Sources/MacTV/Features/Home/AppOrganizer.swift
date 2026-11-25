@@ -193,7 +193,7 @@ struct AppOrganizerSheet: View {
     var body: some View {
         let apps = tv.arrangedServices
         VStack(alignment: .leading, spacing: 22) {
-            Text("Arrange Apps").font(.tv(.title3, emphasized: true))
+            Text("앱 정리").font(.tv(.title3, emphasized: true))
             Text(tv.organizer?.action == .remove
                  ? "Removed apps can be added back from Add App › Suggested."
                  : "Favourites stay first. The first six apps appear in the dock.")
@@ -209,7 +209,7 @@ struct AppOrganizerSheet: View {
                                 .id(service.id)
                         }
                         if apps.isEmpty {
-                            Text("Add an app to start arranging your home screen.")
+                            Text("앱을 추가하면 홈 화면에서 순서를 정리할 수 있습니다.")
                                 .font(.system(size: 26)).padding(40)
                         }
                     }
@@ -262,7 +262,7 @@ struct AppOrganizerSheet: View {
                     Text(service.name).font(.system(size: 27, weight: .semibold)).lineLimit(1)
                     if pinned {
                         Image(systemName: "star.fill").font(.system(size: 20)).foregroundStyle(.yellow)
-                            .accessibilityLabel("Favourite")
+                            .accessibilityLabel("즐겨찾기")
                     }
                     Spacer(minLength: 0)
                 }
@@ -271,9 +271,9 @@ struct AppOrganizerSheet: View {
             .buttonStyle(.plain)
             actionButton(.pin, title: pinned ? "Unpin" : "Pin", symbol: pinned ? "star.slash" : "star",
                          service: service, enabled: true)
-            actionButton(.earlier, title: "Earlier", symbol: "arrow.up", service: service,
+            actionButton(.earlier, title: "앞으로", symbol: "arrow.up", service: service,
                          enabled: tv.canMoveApp(service.id, by: -1))
-            actionButton(.later, title: "Later", symbol: "arrow.down", service: service,
+            actionButton(.later, title: "뒤로", symbol: "arrow.down", service: service,
                          enabled: tv.canMoveApp(service.id, by: 1))
             removeButton(service)
         }
@@ -336,7 +336,7 @@ struct AppOrganizerSheet: View {
                     else { tv.cancelRemoveHold() }
                 }
             }
-            .accessibilityLabel("Hold to remove \(service.name)")
+            .accessibilityLabel("길게 눌러 \(service.name) 제거")
             .accessibilityAddTraits(.isButton)
             .animation(reduceMotion ? nil : Motion.focus, value: focused)
     }

@@ -10,10 +10,10 @@ struct AddAppSheet: View {
     var body: some View {
         let a = tv.adder ?? AppAdder()
         VStack(alignment: .leading, spacing: 26) {
-            Text("Add an app").font(.tv(.title3, emphasized: true))
+            Text("앱 추가").font(.tv(.title3, emphasized: true))
 
             HStack(spacing: 6) {
-                tab("Website", .website, a)
+                tab("웹사이트", .website, a)
                 tab("Suggested", .suggested, a)
                 tab("Mac app", .macApp, a)
                 if tv.adderTabs.contains(.steam) { tab("Steam", .steam, a) }
@@ -25,16 +25,16 @@ struct AddAppSheet: View {
             .animation(Motion.focus, value: a.row)
 
             if a.tab == .website {
-                AdderField(label: "Website", text: a.address, placeholder: "e.g. crunchyroll.com", focused: a.row == 1) { set(row: 1) }
-                AdderField(label: "Name (optional)", text: a.name, placeholder: "Taken from the website", focused: a.row == 2) { set(row: 2) }
-                ShelfButton(title: "Add to Home Screen", systemImage: "plus", focused: a.row == 3, glass: false) {
+                AdderField(label: "웹사이트", text: a.address, placeholder: "예: crunchyroll.com", focused: a.row == 1) { set(row: 1) }
+                AdderField(label: "이름 (선택)", text: a.name, placeholder: "웹사이트 이름 사용", focused: a.row == 2) { set(row: 2) }
+                ShelfButton(title: "홈 화면에 추가", systemImage: "plus", focused: a.row == 3, glass: false) {
                     set(row: 3)
                     tv.submitAdder()
                 }
             } else if a.tab == .suggested {
                 suggestedList(a)
             } else if a.tab == .macApp {
-                AdderField(label: "Search apps on this Mac", text: a.query, placeholder: "Type to filter", focused: a.row == 1) { set(row: 1) }
+                AdderField(label: "Mac에 설치된 앱 검색", text: a.query, placeholder: "검색어 입력", focused: a.row == 1) { set(row: 1) }
                 macList(a)
             } else {
                 steamList(a)
@@ -95,18 +95,18 @@ struct AddAppSheet: View {
             case .moreServices:
                 return a.moreServicesExpanded ? "Hide" : "Show"
             case .item(let pick):
-                return tv.isOnHomeScreen(pick.service) ? "Remove from Home Screen" : "Add to Home Screen"
+                return tv.isOnHomeScreen(pick.service) ? "Remove from Home Screen" : "홈 화면에 추가"
             }
         case .steam:
             guard a.row == 1 else { return "Select" }
             let games = tv.adderSteamGames
             guard games.indices.contains(a.selected) else { return "Select" }
-            return tv.isOnHomeScreen(games[a.selected]) ? "Remove from Home Screen" : "Add to Home Screen"
+            return tv.isOnHomeScreen(games[a.selected]) ? "Remove from Home Screen" : "홈 화면에 추가"
         case .macApp:
             guard a.row == 2 else { return "Select" }
             let matches = tv.adderMatches
             guard matches.indices.contains(a.selected) else { return "Select" }
-            return tv.isOnHomeScreen(matches[a.selected]) ? "Remove from Home Screen" : "Add to Home Screen"
+            return tv.isOnHomeScreen(matches[a.selected]) ? "Remove from Home Screen" : "홈 화면에 추가"
         }
     }
 
@@ -183,7 +183,7 @@ struct AddAppSheet: View {
         let window = 10
         let _ = suggestionIconTick
         if rows.isEmpty {
-            Text("Nothing to suggest right now.")
+            Text("현재 추천할 앱이 없습니다.")
                 .font(.tv(.caption1)).opacity(0.6)
                 .frame(maxWidth: .infinity, minHeight: Self.listRow, alignment: .leading)
         } else {
@@ -245,7 +245,7 @@ struct AddAppSheet: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(onPlate ? Color.black : Color.white)
                 .frame(width: Self.iconSlot.width, height: Self.iconSlot.height)
-            Text("More services")
+            Text("더 많은 서비스")
                 .font(.tv(.body)).lineLimit(1)
                 .foregroundStyle(onPlate ? Color.black : Color.white)
             Spacer()
@@ -326,7 +326,7 @@ struct AddAppSheet: View {
                     })
                 }
                 if games.count == 1 {
-                    Text("No Steam games installed yet. Install some in Steam and they'll show up here.")
+                    Text("설치된 Steam 게임이 없습니다. Steam에서 게임을 설치하면 여기에 표시됩니다.")
                         .font(.tv(.caption2)).opacity(onPlate ? 0 : 0.6).padding(.top, 6)
                 }
             }
@@ -358,7 +358,7 @@ struct AddAppSheet: View {
     @ViewBuilder private func macList(_ a: AppAdder) -> some View {
         let matches = tv.adderMatches
         if matches.isEmpty {
-            Text("No apps match.").font(.tv(.caption1)).opacity(0.6)
+            Text("검색과 일치하는 앱이 없습니다.").font(.tv(.caption1)).opacity(0.6)
                 .frame(maxWidth: .infinity, minHeight: Self.listRow, alignment: .leading)
         } else {
             scrollingList(

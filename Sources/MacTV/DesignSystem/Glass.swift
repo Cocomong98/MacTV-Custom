@@ -53,8 +53,11 @@ extension View {
     /// A plain panel for sheets that sit on the frosted backdrop. Glass there would have only blur to
     /// refract and read as a flat grey slab, so these group their content with a quiet fill instead.
     func tvPanel<S: InsettableShape>(in shape: S) -> some View {
-        background(.white.opacity(0.07), in: shape)
-            .overlay(shape.strokeBorder(.white.opacity(0.12)))
+        background {
+            shape.fill(LinearGradient(colors: [.white.opacity(0.13), .white.opacity(0.055)],
+                                      startPoint: .topLeading, endPoint: .bottomTrailing))
+        }
+        .overlay(shape.strokeBorder(.white.opacity(0.15)).allowsHitTesting(false))
     }
 
     /// Related glass in one GlassGroup morphs between shapes when one appears or leaves.

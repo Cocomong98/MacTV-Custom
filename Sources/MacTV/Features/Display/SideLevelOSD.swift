@@ -142,7 +142,7 @@ struct SideLevelView: View {
         .overlay { RoundedRectangle(cornerRadius: 22).strokeBorder(.white.opacity(0.22)) }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(level.kind == .brightness ? "Brightness" : "Volume")
+        .accessibilityLabel(level.kind == .brightness ? "밝기" : "음량")
         .accessibilityValue(level.text)
     }
 }

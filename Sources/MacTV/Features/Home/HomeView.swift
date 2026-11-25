@@ -67,7 +67,7 @@ struct HomeView: View {
                 // While the Mac can't sleep with its lid closed, say so where it's always seen.
                 if tv.lidSleepOff {
                     let focused = tv.focus == .status(.lid)
-                    Label("Lid sleep off", systemImage: "moon.zzz")
+                    Label("덮개 닫기 잠자기 꺼짐", systemImage: "moon.zzz")
                         .font(.tv(.caption2))
                         .padding(.horizontal, 20)
                         .frame(height: 50)
@@ -101,7 +101,7 @@ struct HomeView: View {
                 .animation(Motion.appear, value: tv.lidSleepOff)
                 .animation(Motion.appear, value: tv.controller)
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.trailing, 96)
+                .padding(.trailing, TVLayout.edge)
                 .padding(.top, 56)
                 .modifier(ClearsCornerForNotices(notices: tv.notices, inGrid: tv.inGrid))
         }
@@ -110,7 +110,7 @@ struct HomeView: View {
         .foregroundStyle(.white)
         .animation(Motion.navigate, value: focusedRow)
         .animation(Motion.navigate, value: shelfFocused)
-        .animation(Motion.appear, value: tv.shelfAppIndex)
+                .animation(Motion.appear, value: tv.shelfAppIndex)
     }
 }
 
@@ -216,13 +216,15 @@ struct AppCell: View {
                 }
             }
             .overlay(alignment: .bottom) {
-                Text(service.name)
-                    .font(.tv(.caption1))
-                    .fixedSize()
-                    .offset(y: 50)
-                    .opacity(focused && showsLabel ? 1 : 0)
-                    .offset(y: focused && showsLabel ? 0 : -8)
-                    .animation(Motion.focus, value: focused)
+                if service.tileSymbol == nil {
+                    Text(service.name)
+                        .font(.tv(.caption1))
+                        .fixedSize()
+                        .offset(y: 50)
+                        .opacity(focused && showsLabel ? 1 : 0)
+                        .offset(y: focused && showsLabel ? 0 : -8)
+                        .animation(Motion.focus, value: focused)
+                }
             }
             .contentShape(Rectangle())
             .onContinuousHover { phase in
@@ -265,7 +267,7 @@ struct AppTile: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: TVLayout.tileRadius, style: .continuous)
         let tilt = reduceMotion ? .zero : tilt
         artwork
             .frame(width: Layout.tile.width, height: Layout.tile.height)
@@ -320,6 +322,31 @@ struct AppTile: View {
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 76))
                     .foregroundStyle(.white)
+            }
+        } else if let symbol = service.tileSymbol {
+            let tint = Color(hex: service.accent)
+            ZStack {
+                Color(hex: "#171B2A")
+                LinearGradient(colors: [tint.opacity(0.61), .clear], startPoint: .topLeading, endPoint: .bottomTrailing)
+                RadialGradient(colors: [tint.opacity(0.82), .clear], center: .topTrailing,
+                               startRadius: 0, endRadius: 200)
+                LinearGradient(colors: [.clear, Color(hex: "#171B2A").opacity(0.65)],
+                               startPoint: .center, endPoint: .bottom)
+                VStack(alignment: .leading) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 25, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .accessibilityHidden(true)
+                    Spacer(minLength: 8)
+                    Text(service.name)
+                        .font(.system(size: 25, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .padding(.horizontal, 23)
+                .padding(.vertical, 20)
             }
         } else if let tile = Icons.tile(for: service) {
             Image(nsImage: tile).resizable().interpolation(.high)

@@ -373,7 +373,7 @@ extension TVController {
                 if service.isAvailable {
                     library.setHidden(service.id, false)
                     reloadServices()
-                    showToast("Added \(service.name)")
+                    showToast("\(service.name) 추가됨")
                 } else if case .web(let url) = service.kind {
                     guard addWebsite(name: service.name, address: url.absoluteString) != nil else { return }
                 } else {

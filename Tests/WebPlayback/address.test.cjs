@@ -5,7 +5,10 @@ const vm = require('node:vm');
 const { script: source } = require('./page.cjs');
 const start = source.indexOf('let websiteOpening = false;');
 const end = source.indexOf("$('#type').onsubmit", start);
+const messagesStart = source.indexOf('const remoteMessages =');
+const messagesEnd = source.indexOf('// Keep a small bounded queue', messagesStart);
 assert.ok(start >= 0 && end > start);
+assert.ok(messagesStart >= 0 && messagesEnd > messagesStart);
 const elements = Object.fromEntries(['open-website', 'website-address', 'website-go', 'website-open-error']
   .map(id => [id, { value: '', textContent: '', hidden: true, disabled: false }]));
 const requests = [];
@@ -14,7 +17,7 @@ const api = (path, body) => {
   requests.push({ path, body });
   return new Promise((resolve, reject) => { resolveRequest = resolve; rejectRequest = reject; });
 };
-vm.runInNewContext(source.slice(start, end), {
+vm.runInNewContext(source.slice(messagesStart, messagesEnd) + source.slice(start, end), {
   $: selector => elements[selector.slice(1)], api, haptic() {}, refresh: async () => { refreshes++; },
 });
 const submit = () => elements['open-website'].onsubmit({ preventDefault() {} });
@@ -22,6 +25,7 @@ const submit = () => elements['open-website'].onsubmit({ preventDefault() {} });
   await submit();
   assert.equal(requests.length, 0);
   assert.equal(elements['website-open-error'].hidden, false);
+  assert.equal(elements['website-open-error'].textContent, '웹사이트 주소를 입력하세요.');
   elements['website-address'].value = ' youtube.com ';
   const first = submit();
   await submit();

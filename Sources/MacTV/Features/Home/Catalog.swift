@@ -16,11 +16,9 @@ struct Service: Identifiable, Hashable {
     let id: String
     let name: String
     let kind: Kind
-    /// The service's square app icon, a file in Icons/ for built-in apps…
-    var icon: String? = nil
-    /// A shortcut icon published by the service on its own site.
-    var websiteIcon: URL? = nil
-    /// …or a file the user's app library saved, for apps they added.
+    /// A system symbol for a built-in tile drawn in MacTV's style.
+    var tileSymbol: String? = nil
+    /// The icon file saved for an app the user added.
     var iconFile: URL? = nil
     var accent = "#8E8E93"
     var deep = "#16171B"
@@ -65,8 +63,6 @@ struct Service: Identifiable, Hashable {
 enum UserAgent {
     /// Streaming sites gate DRM and quality on the browser; present as Safari.
     static let safari = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Safari/605.1.15"
-    /// youtube.com/tv only serves its 10-foot interface to TV browsers.
-    static let smartTV = "Mozilla/5.0 (Linux; Tizen 2.3) AppleWebKit/538.1 (KHTML, like Gecko)Version/2.3 TV Safari/538.1"
     /// Google's sign-in turns away browsers embedded in apps ("browser unsupported"); on its
     /// pages only, present as desktop Firefox, which it accepts.
     static let googleSignIn = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:144.0) Gecko/20100101 Firefox/144.0"
@@ -77,37 +73,36 @@ enum Catalog {
     /// Mac app tiles only appear when the app is installed.
     static let services: [Service] = [
         Service(id: "netflix", name: "Netflix", kind: .web(URL(string: "https://www.netflix.com/browse")!),
-                icon: "netflix.png", accent: "#E50914", deep: "#2B0204"),
-        Service(id: "youtube", name: "YouTube", kind: .web(URL(string: "https://www.youtube.com/tv")!),
-                icon: "youtube.png", accent: "#FF2D2D", deep: "#2B0606",
-                userAgent: UserAgent.smartTV, dpadNavigation: false),
+                tileSymbol: "play.rectangle", accent: "#D23956", deep: "#2B0204"),
+        Service(id: "youtube", name: "YouTube", kind: .web(URL(string: "https://www.youtube.com/")!),
+                tileSymbol: "play.rectangle", accent: "#EF6046", deep: "#2B0606"),
         Service(id: "prime", name: "Prime Video", kind: .web(URL(string: "https://www.primevideo.com")!),
-                icon: "prime.png", accent: "#1A98FF", deep: "#05213F"),
+                tileSymbol: "play.rectangle", accent: "#20A9E1", deep: "#05213F"),
         Service(id: "hotstar", name: "JioHotstar", kind: .web(URL(string: "https://www.hotstar.com")!),
-                icon: "hotstar.png", accent: "#2C6BED", deep: "#081538"),
+                tileSymbol: "play.rectangle", accent: "#9164EF", deep: "#081538"),
         Service(id: "appletv", name: "Apple TV", kind: .web(URL(string: "https://tv.apple.com")!),
-                icon: "appletv.png", accent: "#9A9AA2", deep: "#18181B"),
+                tileSymbol: "play.rectangle", accent: "#8D98AF", deep: "#18181B"),
         Service(id: "spotify", name: "Spotify", kind: .web(URL(string: "https://open.spotify.com")!),
-                icon: "spotify.png", accent: "#1ED760", deep: "#06210F"),
+                tileSymbol: "music.note", accent: "#21B77B", deep: "#06210F"),
         Service(id: "ytmusic", name: "YouTube Music", kind: .web(URL(string: "https://music.youtube.com")!),
-                icon: "ytmusic.png", accent: "#FF2D2D", deep: "#2B0606"),
+                tileSymbol: "music.note", accent: "#CB54AC", deep: "#2B0606"),
         Service(id: "itvx", name: "ITVX", kind: .web(URL(string: "https://www.itv.com/watch")!),
-                accent: "#16C6B0", deep: "#06312D", regions: ["GB"]),
+                tileSymbol: "play.rectangle", accent: "#16C6B0", deep: "#06312D", regions: ["GB"]),
         Service(id: "channel4", name: "Channel 4", kind: .web(URL(string: "https://www.channel4.com/")!),
-                accent: "#ED1664", deep: "#320B1A", regions: ["GB"]),
-        Service(id: "movies", name: "Movies", kind: .movies, accent: "#5E5CE6", deep: "#14133A"),
+                tileSymbol: "play.rectangle", accent: "#ED1664", deep: "#320B1A", regions: ["GB"]),
+        Service(id: "movies", name: "동영상", kind: .movies, accent: "#5E5CE6", deep: "#14133A"),
         Service(id: "iina", name: "IINA", kind: .app(bundleID: "com.colliderli.iina"),
-                icon: "iina.png"),
+                tileSymbol: "rectangle.bottomthird.inset.filled", accent: "#658EE5"),
         Service(id: "wavve", name: "웨이브", kind: .web(URL(string: "https://www.wavve.com/")!),
-                websiteIcon: URL(string: "https://www.wavve.com/favicon.ico"), reportsUsage: false),
+                tileSymbol: "play.rectangle", accent: "#4984FF", deep: "#121A3C", reportsUsage: false),
         Service(id: "watcha", name: "왓챠", kind: .web(URL(string: "https://watcha.com/")!),
-                websiteIcon: URL(string: "https://watcha.com/favicon.ico"), reportsUsage: false),
+                tileSymbol: "play.rectangle", accent: "#E5508B", deep: "#33122A", reportsUsage: false),
         Service(id: "tving", name: "티빙", kind: .web(URL(string: "https://www.tving.com/")!),
-                websiteIcon: URL(string: "https://www.tving.com/favicon.ico"), reportsUsage: false),
+                tileSymbol: "play.rectangle", accent: "#ED944A", deep: "#2B1B16", reportsUsage: false),
         Service(id: "laftel", name: "라프텔", kind: .web(URL(string: "https://laftel.net/")!),
-                websiteIcon: URL(string: "https://static.laftel.net/favicon-152.png"), reportsUsage: false),
-        Service(id: "add-app", name: "Add App", kind: .addApp),
-        Service(id: "settings", name: "Settings", kind: .settings),
+                tileSymbol: "play.rectangle", accent: "#36B5B2", deep: "#102B33", reportsUsage: false),
+        Service(id: "add-app", name: "앱 추가", kind: .addApp),
+        Service(id: "settings", name: "설정", kind: .settings),
     ]
 
     /// Extra streaming sites under Add App › Suggested (not on the home screen by default).
@@ -243,10 +238,8 @@ enum SuggestionIcons {
     }
 
     static func image(for service: Service) -> NSImage? {
-        // Bundled restore icons only — don't ask Icons for bare website presets (it would cache a nil).
-        if service.icon != nil || service.iconFile != nil, let bundled = Icons.image(for: service) {
-            return bundled
-        }
+        guard service.tileSymbol == nil else { return nil }
+        if service.iconFile != nil, let saved = Icons.image(for: service) { return saved }
         if let cached = memory[service.id] { return cached }
         let path = file(for: service.id)
         guard let image = NSImage(contentsOf: path), image.size.width > 0 else { return nil }
@@ -257,7 +250,7 @@ enum SuggestionIcons {
     /// Pulls missing logos in list order so the first rows fill first.
     static func prefetch(_ services: [Service], onEach: @MainActor () -> Void = {}) async {
         for service in services {
-            guard case .web = service.kind else { continue }
+            guard case .web = service.kind, service.tileSymbol == nil else { continue }
             if image(for: service) != nil || missing.contains(service.id) { continue }
             guard let data = await IconFinder.storeIcon(named: service.iconQuery ?? service.name, regions: service.regions),
                   let image = NSImage(data: data) else { missing.insert(service.id); continue }
@@ -276,43 +269,10 @@ enum Icons {
     private static var images: [String: NSImage] = [:]
     private static var pngs: [String: Data] = [:]
 
-    private static func websiteIconFile(_ id: String) -> URL {
-        AppFolder.url.appendingPathComponent("Icons/website-\(id).png")
-    }
-
-    /// Load service-published site icons once and update the existing tiles as they arrive.
-    static func fetchWebsiteIcons(onChange: @MainActor () -> Void) async {
-        await withTaskGroup(of: (String, Data?).self) { group in
-            for service in Catalog.services {
-                guard let url = service.websiteIcon, image(for: service) == nil else { continue }
-                let id = service.id
-                group.addTask { (id, await IconFinder.fetchImage(url)) }
-            }
-            for await (id, data) in group {
-                guard let data, let image = NSImage(data: data) else { continue }
-                let file = websiteIconFile(id)
-                Log.app.attempt("Caching a service icon") {
-                    try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-                    try data.write(to: file, options: .atomic)
-                }
-                forget(id)
-                images[id] = image
-                onChange()
-            }
-        }
-    }
-
     static func image(for service: Service) -> NSImage? {
+        guard service.tileSymbol == nil, let file = service.iconFile else { return nil }
         if let cached = images[service.id] { return cached }
-        var image: NSImage?
-        if let file = service.iconFile {
-            image = decoded(file)
-        } else if let file = service.icon,
-           let url = Bundle.main.url(forResource: file, withExtension: nil, subdirectory: "Icons") {
-            image = decoded(url)
-        } else if service.websiteIcon != nil {
-            image = decoded(websiteIconFile(service.id))
-        }
+        let image = decoded(file)
         images[service.id] = image
         return image
     }

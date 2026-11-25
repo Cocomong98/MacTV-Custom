@@ -18,7 +18,7 @@ extension TVController {
     /// How many things in the Top Shelf can take focus: its Open button, for apps.
     var shelfCount: Int {
         switch shelfService.kind {
-        case .web, .app, .steam, .movies: return topShelf.searchURL(for: shelfService) == nil ? 1 : 2
+        case .web, .app, .steam, .movies: return 1
         case .addApp, .settings: return 0
         }
     }
@@ -59,10 +59,9 @@ extension TVController {
                     setFocus(.status(.controlCenter))
                 }
             }
-        case .shelf(let index):
+        case .shelf:
             switch direction {
-            case .left: if index > 0 { setFocus(.shelf(index - 1)) }
-            case .right: if index + 1 < shelfCount { setFocus(.shelf(index + 1)) }
+            case .left, .right: break
             case .down: setFocus(.app(shelfAppIndex))
             case .up: setFocus(.status(.controlCenter))
             }
@@ -88,10 +87,9 @@ extension TVController {
     }
 
     func activateShelf(_ index: Int) {
-        if index == 0, let url = topShelf.searchURL(for: shelfService) {
-            playbackCoordinator.playWeb(shelfService, url: url)
-        } else {
-            open(shelfService)
-        }
+        guard index == 0, shelfCount > 0 else { return }
+        let service = shelfService
+        setFocus(.app(shelfAppIndex))
+        open(service)
     }
 }

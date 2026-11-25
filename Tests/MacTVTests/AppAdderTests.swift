@@ -211,30 +211,4 @@ struct AppAdderTests {
         #expect(!Catalog.matchesSuggestionRegion(joyn, region: "US"))
     }
 
-    @Test func newShelfLanguagesAreAddedOnceAndStayOffWhenTurnedOff() {
-        let defaults = UserDefaults.standard
-        let savedPreferences = defaults.object(forKey: "topShelfPreferences")
-        let savedFlag = defaults.object(forKey: "topShelfAddedLanguages")
-        defer {
-            defaults.set(savedPreferences, forKey: "topShelfPreferences")
-            defaults.set(savedFlag, forKey: "topShelfAddedLanguages")
-        }
-        defaults.removeObject(forKey: "topShelfAddedLanguages")
-        ShelfPreferences(region: "", languages: ["English", "Hindi"]).save()
-        #expect(ShelfPreferences.load().languages == ["Dutch", "English", "French", "German", "Hindi", "Italian", "Portuguese"])
-
-        var preferences = ShelfPreferences.load()
-        preferences.languages.removeAll { $0 == "French" }
-        preferences.save()
-        #expect(!ShelfPreferences.load().languages.contains("French"))
-        #expect(!ShelfPreferences.load().languages.contains("French"))
-
-        // A new install starts with them, so turning one off there sticks too.
-        defaults.removeObject(forKey: "topShelfPreferences")
-        defaults.removeObject(forKey: "topShelfAddedLanguages")
-        var fresh = ShelfPreferences.load()
-        fresh.languages.removeAll { $0 == "German" }
-        fresh.save()
-        #expect(!ShelfPreferences.load().languages.contains("German"))
-    }
 }

@@ -96,8 +96,8 @@ extension TVController {
         case .sleepTimer: stepSleepTimer(by: 1, wrap: true)
         case .skipIntros: autoSkip.toggle()
         case .controller:
-            showToast(controller.map { "\($0.name)\($0.battery.map { ", battery \(Int($0 * 100))%" } ?? "")" }
-                      ?? "Pair a controller in System Settings › Bluetooth")
+            showToast(controller.map { "\($0.name)\($0.battery.map { " · 배터리 \(Int($0 * 100))%" } ?? "")" }
+                      ?? "시스템 설정 › Bluetooth에서 컨트롤러를 연결하세요.")
         case .screenOff: SystemControl.displayOff()
         case .lid: lidOverride.toggle()
         case .settings:
@@ -125,17 +125,17 @@ struct ControlCenterView: View {
                         sleepTile(panel)
                         VStack(spacing: Self.gap) {
                             tile(.audio, panel, symbol: tv.currentAudioDevice?.symbol ?? "speaker.wave.2.fill",
-                                 title: "Audio", detail: tv.currentAudioDevice?.name ?? "Speakers", on: true)
-                            tile(.phone, panel, symbol: "iphone", title: "Phone",
-                                 detail: tv.phonePaired ? "Connected" : "Set up", on: tv.phonePaired)
+                                 title: "오디오", detail: tv.currentAudioDevice?.name ?? "스피커", on: true)
+                            tile(.phone, panel, symbol: "iphone", title: "휴대전화",
+                                 detail: tv.phonePaired ? "연결됨" : "연결하기", on: tv.phonePaired)
                         }
                     }
                     HStack(spacing: Self.gap) {
                         let minutes = tv.sleepMinutesLeft
-                        tile(.sleepTimer, panel, symbol: minutes > 0 ? "moon.zzz.fill" : "timer", title: "Sleep Timer",
-                             detail: minutes > 0 ? "\(minutes) min" : "Off", on: minutes > 0)
-                        tile(.skipIntros, panel, symbol: tv.autoSkip ? "forward.end.fill" : "forward.end", title: "Skip Intros",
-                             detail: tv.autoSkip ? "On" : "Off", on: tv.autoSkip)
+                        tile(.sleepTimer, panel, symbol: minutes > 0 ? "moon.zzz.fill" : "timer", title: "취침 타이머",
+                             detail: minutes > 0 ? "\(minutes)분" : "끔", on: minutes > 0)
+                        tile(.skipIntros, panel, symbol: tv.autoSkip ? "forward.end.fill" : "forward.end", title: "오프닝 건너뛰기",
+                             detail: tv.autoSkip ? "켬" : "끔", on: tv.autoSkip)
                     }
                     HStack(spacing: Self.gap) {
                         round(.controller, panel, symbol: "gamecontroller.fill", on: tv.controller != nil)
@@ -145,6 +145,8 @@ struct ControlCenterView: View {
                     }
                 }
             }
+            .padding(20)
+            .tvPanel(in: RoundedRectangle(cornerRadius: TVLayout.panelRadius))
             // Nav hints live in the home status bar; here only explain unlabeled round buttons.
             let detail = caption(panel)
             if !detail.isEmpty {
@@ -160,7 +162,7 @@ struct ControlCenterView: View {
         .foregroundStyle(.white)
         // Just under the home screen's status row, which stays in place above it.
         .padding(.top, 136)
-        .padding(.trailing, 96)
+        .padding(.trailing, TVLayout.edge)
         .frame(width: canvas.width, height: canvas.height, alignment: .topTrailing)
         .animation(Motion.focus, value: panel)
     }
@@ -168,11 +170,11 @@ struct ControlCenterView: View {
     /// What the focused unlabeled control does (round buttons / sleep confirm).
     private func caption(_ panel: ControlCenterPanel) -> String {
         switch panel.item {
-        case .controller: tv.controller?.name ?? "No controller connected"
-        case .screenOff: "Turn Screen Off"
-        case .lid: tv.lidOverride ? "Stays awake with the lid closed" : "Sleeps when the lid closes"
-        case .settings: "All Settings"
-        case .sleepMac: panel.confirmingSleep ? "Press again to sleep the Mac" : ""
+        case .controller: tv.controller?.name ?? "연결된 컨트롤러 없음"
+        case .screenOff: "화면 끄기"
+        case .lid: tv.lidOverride ? "덮개를 닫아도 깨어 있음" : "덮개를 닫으면 잠자기"
+        case .settings: "모든 설정"
+        case .sleepMac: panel.confirmingSleep ? "한 번 더 누르면 Mac이 잠자기 상태로 전환됩니다." : ""
         default: ""
         }
     }
@@ -184,7 +186,7 @@ struct ControlCenterView: View {
             Image(systemName: "power")
                 .font(.system(size: 78, weight: .regular))
                 .symbolEffect(.bounce, value: warning)
-            Text(warning ? "Press Again" : "Sleep Mac").font(.tv(.caption1))
+            Text(warning ? "한 번 더 누르기" : "Mac 잠자기").font(.tv(.caption1))
         }
         .foregroundStyle(focused && !warning ? .black : .white)
         .frame(width: Self.column, height: Self.row * 2 + Self.gap)

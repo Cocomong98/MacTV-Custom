@@ -11,14 +11,14 @@ final class BrowserSession {
         case invalidURL, unavailable, noWindow, permission, placement, focus, closing, eventCreation
         var errorDescription: String? {
             switch self {
-            case .invalidURL: return "Only HTTP and HTTPS addresses can be opened in a browser."
-            case .unavailable: return "The browser is unavailable or has quit."
-            case .noWindow: return "Mac TV's browser window is no longer open."
-            case .permission: return "Allow Mac TV in Privacy & Security > \(BrowserSession.permissionPane) to open and control the browser window."
-            case .placement: return "Could not place the browser window on the selected display. Check \(BrowserSession.permissionPane) in Privacy & Security and try again."
-            case .focus: return "Could not bring the browser window to the front. Try again."
-            case .closing: return "Could not close Mac TV's browser window."
-            case .eventCreation: return "The remote input event could not be created."
+            case .invalidURL: return "브라우저에서 열 수 있는 주소는 HTTP 또는 HTTPS입니다."
+            case .unavailable: return "브라우저를 사용할 수 없거나 종료되었습니다."
+            case .noWindow: return "MacTV에서 연 브라우저 창이 닫혔습니다."
+            case .permission: return "브라우저 창을 열고 조작하려면 시스템 설정 › 개인정보 보호 및 보안 › \(BrowserSession.permissionPaneDisplayName)에서 MacTV를 허용하세요."
+            case .placement: return "선택한 화면으로 브라우저 창을 옮기지 못했습니다. 개인정보 보호 및 보안의 \(BrowserSession.permissionPaneDisplayName) 권한을 확인한 뒤 다시 시도하세요."
+            case .focus: return "브라우저 창을 앞으로 가져오지 못했습니다. 다시 시도하세요."
+            case .closing: return "MacTV에서 연 브라우저 창을 닫지 못했습니다."
+            case .eventCreation: return "리모컨 입력을 처리하지 못했습니다."
             }
         }
     }
@@ -26,6 +26,10 @@ final class BrowserSession {
     /// The Privacy & Security pane that grants Accessibility access: renamed in macOS 27 (Golden Gate).
     nonisolated static var permissionPane: String {
         paneName(for: ProcessInfo.processInfo.operatingSystemVersion)
+    }
+
+    nonisolated static var permissionPaneDisplayName: String {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 ? "기기 제어 및 데이터 접근" : "손쉬운 사용"
     }
 
     nonisolated static func paneName(for version: OperatingSystemVersion) -> String {

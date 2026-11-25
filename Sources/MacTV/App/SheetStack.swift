@@ -8,7 +8,7 @@ import Foundation
 struct SheetStack {
     /// Bottom to top.
     enum Layer: Int, CaseIterable, Comparable {
-        case controlCenter, settings, organizer, pairing, addApp, topShelfPreferences, playbackCheck, audioPicker
+        case controlCenter, settings, organizer, pairing, addApp, playbackCheck, audioPicker
         case profilePicker, setup
 
         static func < (lhs: Layer, rhs: Layer) -> Bool { lhs.rawValue < rhs.rawValue }
@@ -25,7 +25,6 @@ struct SheetStack {
             case .organizer: "arrange-apps"
             case .pairing: "pairing"
             case .addApp: "add-app"
-            case .topShelfPreferences: "top-shelf"
             case .playbackCheck: "playback-check"
             case .audioPicker: "audio-picker"
             case .profilePicker: "profiles"
@@ -40,7 +39,6 @@ struct SheetStack {
     var organizer: AppOrganizer?
     var pairing = false
     var adder: AppAdder?
-    var topShelfPreferences: TopShelfPreferencesPanel?
     var playbackCheck: PlaybackDiagnostics?
     var audioPicker: AudioPickerPanel?
     /// "Who's watching?"
@@ -55,7 +53,6 @@ struct SheetStack {
         case .organizer: organizer != nil
         case .pairing: pairing
         case .addApp: adder != nil
-        case .topShelfPreferences: topShelfPreferences != nil
         case .playbackCheck: playbackCheck != nil
         case .audioPicker: audioPicker != nil
         case .profilePicker: profilePicker != nil
@@ -76,7 +73,6 @@ struct SheetStack {
         case .organizer: organizer = nil
         case .pairing: pairing = false
         case .addApp: adder = nil
-        case .topShelfPreferences: topShelfPreferences = nil
         case .playbackCheck: playbackCheck = nil
         case .audioPicker: audioPicker = nil
         case .profilePicker: profilePicker = nil
@@ -111,10 +107,6 @@ extension TVController {
     var adder: AppAdder? {
         get { sheets.adder }
         set { sheets.adder = newValue }
-    }
-    var topShelfPreferences: TopShelfPreferencesPanel? {
-        get { sheets.topShelfPreferences }
-        set { sheets.topShelfPreferences = newValue }
     }
     var playbackCheck: PlaybackDiagnostics? {
         get { sheets.playbackCheck }

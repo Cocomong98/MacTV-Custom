@@ -25,17 +25,17 @@ const players = [{ id: 'embedded', name: 'Built-in' }, { id: 'brave', name: 'Bra
 let page = render('com.apple.Safari', true, players);
 assert.equal(page.value, 'Safari');
 assert.deepEqual(page.rows.map(row => [row.title, row.selected, row.disabled]),
-  [['Built-in', false, false], ['Brave', false, false], ['Safari', true, false]]);
+  [['내장 플레이어', false, false], ['Brave', false, false], ['Safari', true, false]]);
 page.rows[2].onPick();
 assert.deepEqual(page.picked, ['com.apple.Safari']);
 
 // A saved browser that's gone shows as Built-in, which is what plays.
 page = render('org.mozilla.firefox', false, players.slice(0, 1));
-assert.equal(page.value, 'Built-in');
+assert.equal(page.value, '내장 플레이어');
 assert.equal(page.rows[0].selected, true);
 
 // No list from an older Mac: today's two rows.
 page = render('embedded', false, undefined);
 assert.deepEqual(page.rows.map(row => [row.title, row.detail, row.selected, row.disabled]),
-  [['Built-in', '', true, false], ['Brave', 'Not installed', false, true]]);
+  [['내장 플레이어', '', true, false], ['Brave', '설치 안 됨', false, true]]);
 console.log('website players ok');

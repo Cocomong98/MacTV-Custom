@@ -7,14 +7,13 @@ import SwiftUI
 @MainActor
 enum ScreenSaverSettings {
     enum Wallpaper: String, CaseIterable {
-        case aerials, topShelf, photos, colour
+        case aerials, photos, colour
 
         var title: String {
             switch self {
-            case .aerials: "Aerials"
-            case .topShelf: "Top Shelf"
-            case .photos: "Your Photos"
-            case .colour: "Drifting Colour"
+            case .aerials: "항공 영상"
+            case .photos: "내 사진"
+            case .colour: "움직이는 색상"
             }
         }
     }
@@ -31,10 +30,14 @@ enum ScreenSaverSettings {
 
     static var wallpaper: Wallpaper {
         get {
-            Preferences.shared.saverWallpaper.flatMap(Wallpaper.init(rawValue:))
-                ?? (Aerials.available ? .aerials : .topShelf)
+            resolveWallpaper(Preferences.shared.saverWallpaper, aerialsAvailable: Aerials.available)
         }
         set { Preferences.shared.saverWallpaper = newValue.rawValue }
+    }
+
+    static func resolveWallpaper(_ stored: String?, aerialsAvailable: Bool) -> Wallpaper {
+        if stored == "topShelf" { return .colour }
+        return stored.flatMap(Wallpaper.init(rawValue:)) ?? (aerialsAvailable ? .aerials : .colour)
     }
 
     static var delayMinutes: Int {
@@ -88,15 +91,15 @@ enum ScreenSaverSettings {
         }
     }
 
-    private static var covers: [Wallpaper: (folder: URL, picture: URL?)] = [:]
+    private static var photoCover: (folder: URL, picture: URL?)?
 
     /// One picture to show a slideshow wallpaper by in Settings: the same each time, and the folder is
     /// read only when it changes, not on every redraw.
-    static func cover(for wallpaper: Wallpaper) -> URL? {
-        let folder = wallpaper == .photos ? photosFolder : AppFolder.url.appendingPathComponent("Top Shelf", isDirectory: true)
-        if let cached = covers[wallpaper], cached.folder == folder { return cached.picture }
-        let picture = pictures(for: wallpaper).min { $0.lastPathComponent < $1.lastPathComponent }
-        covers[wallpaper] = (folder, picture)
+    static func coverForPhotos() -> URL? {
+        let folder = photosFolder
+        if let photoCover, photoCover.folder == folder { return photoCover.picture }
+        let picture = pictures(for: .photos).min { $0.lastPathComponent < $1.lastPathComponent }
+        photoCover = (folder, picture)
         return picture
     }
 
@@ -104,7 +107,6 @@ enum ScreenSaverSettings {
     static func pictures(for wallpaper: Wallpaper) -> [URL] {
         let folder: URL
         switch wallpaper {
-        case .topShelf: folder = AppFolder.url.appendingPathComponent("Top Shelf", isDirectory: true)
         case .photos: folder = photosFolder
         case .aerials: return Aerials.films(in: aerialCategory)
         case .colour: return []
@@ -125,7 +127,7 @@ struct ScreenSaverBackdrop: View {
         switch wallpaper {
         case .aerials where !pictures.isEmpty:
             AerialPlayer(films: pictures)
-        case .topShelf, .photos:
+        case .photos:
             if pictures.isEmpty { DriftingColor() } else { Slideshow(files: pictures) }
         default:
             DriftingColor()
@@ -154,8 +156,8 @@ struct WallpaperThumb: View {
                 LinearGradient(colors: [Color(hex: "#5B7A3A"), Color(hex: "#1E3A2A")], startPoint: .top, endPoint: .bottom)
                 Image(systemName: "mountain.2.fill").font(.system(size: 44)).foregroundStyle(.white.opacity(0.6))
             }
-        case .topShelf, .photos:
-            if let first = ScreenSaverSettings.cover(for: wallpaper), let image = ScreenImages.image(first, maxPixels: 400) {
+        case .photos:
+            if let first = ScreenSaverSettings.coverForPhotos(), let image = ScreenImages.image(first, maxPixels: 400) {
                 Image(nsImage: image).resizable().scaledToFill()
             } else {
                 Color.white.opacity(0.07)

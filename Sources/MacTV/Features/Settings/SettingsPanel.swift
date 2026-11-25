@@ -11,7 +11,7 @@ struct SettingsPanel: Equatable {
     enum Row: Equatable {
         case phoneRemote, pairingCode, controller
         case sleepTimer, autoSkip, autoNext, playbackCheck, websitePlayer
-        case addApp, arrangeApps, topShelfPreferences
+        case addApp, arrangeApps
         case dedicatedTV, preferredDisplay, launchAtLogin
         case wallpaper, aerialCategory, saverDelay, saverClock, saverPreview
         case audioOutput, feedback
@@ -35,18 +35,18 @@ struct SettingsPanel: Equatable {
             switch self {
             case .autoSkip, .autoNext, .saverClock, .feedback, .keepMacAwake, .lidOverride,
                  .analytics, .autoUpdate, .dedicatedTV, .launchAtLogin:
-                "Toggle"
+                "전환"
             case .sleepTimer, .websitePlayer, .preferredDisplay, .wallpaper, .aerialCategory, .saverDelay:
                 // ←→ already says Change; OK advances the same value.
-                "Select"
-            case .phoneRemote, .addApp, .arrangeApps, .topShelfPreferences, .playbackCheck, .audioOutput:
-                "Open"
-            case .saverPreview: "Preview"
-            case .screenOff: "Turn Off"
-            case .sleepMac: "Sleep"
-            case .report: "Copy"
-            case .update: "Update"
-            case .controller: "Select"
+                "선택"
+            case .phoneRemote, .addApp, .arrangeApps, .playbackCheck, .audioOutput:
+                "열기"
+            case .saverPreview: "미리 보기"
+            case .screenOff: "끄기"
+            case .sleepMac: "잠자기"
+            case .report: "복사"
+            case .update: "업데이트"
+            case .controller: "선택"
             // OK does nothing on these, so there's no OK hint.
             case .pairingCode, .version, .source: ""
             }
@@ -64,16 +64,16 @@ struct SettingsPanel: Equatable {
 extension SettingsPanel.Section {
     var title: String {
         switch self {
-        case .profiles: "Profiles"
-        case .remotes: "Remotes and Devices"
-        case .watching: "Watching"
-        case .screenSaver: "Screen Saver"
-        case .sounds: "Sounds and Haptics"
-        case .apps: "Apps"
-        case .movies: "Movies"
-        case .dedicatedTV: "Dedicated TV"
-        case .power: "Power"
-        case .about: "About"
+        case .profiles: "프로필"
+        case .remotes: "리모컨 및 기기"
+        case .watching: "시청"
+        case .screenSaver: "화면 보호기"
+        case .sounds: "사운드 및 햅틱"
+        case .apps: "앱"
+        case .movies: "동영상"
+        case .dedicatedTV: "전용 TV"
+        case .power: "전원"
+        case .about: "앱 정보"
         }
     }
 
@@ -94,16 +94,16 @@ extension SettingsPanel.Section {
 
     var blurb: String {
         switch self {
-        case .profiles: "Everyone gets their own apps and stays signed in separately."
-        case .remotes: "Use your phone as a remote, and see your game controllers."
-        case .watching: "Skip intros and recaps, play the next episode, and set a sleep timer."
-        case .screenSaver: "Shown after a few idle minutes on the home screen. Any press brings you back."
-        case .sounds: "Quiet clicks as you move around, and a tap on the trackpad or controller."
-        case .apps: "Add any website, Mac app or Steam game to the home screen."
-        case .movies: "Play the video files in your folders, MKV included."
-        case .dedicatedTV: "Choose a display and start Mac TV automatically."
-        case .power: "Keep the Mac awake for the remote, and choose what closing the lid does."
-        case .about: "Mac TV is free and open source."
+        case .profiles: "프로필마다 앱과 로그인 상태를 따로 관리합니다."
+        case .remotes: "휴대전화를 리모컨으로 연결하고 게임 컨트롤러를 확인합니다."
+        case .watching: "오프닝 건너뛰기, 다음 회차 재생, 취침 타이머를 설정합니다."
+        case .screenSaver: "홈 화면에서 일정 시간 동안 조작하지 않으면 표시됩니다. 아무 버튼이나 누르면 홈으로 돌아갑니다."
+        case .sounds: "이동 소리와 트랙패드 또는 컨트롤러의 진동을 설정합니다."
+        case .apps: "웹사이트, Mac 앱, Steam 게임을 홈 화면에 추가합니다."
+        case .movies: "폴더에 있는 동영상 파일을 재생합니다. MKV도 지원합니다."
+        case .dedicatedTV: "재생 화면을 선택하고 CouchDial 자동 실행을 설정합니다."
+        case .power: "리모컨을 쓸 수 있도록 Mac을 깨어 있게 유지하고 덮개를 닫을 때의 동작을 설정합니다."
+        case .about: "CouchDial은 무료 오픈 소스 앱입니다."
         }
     }
 
@@ -116,7 +116,7 @@ extension SettingsPanel.Section {
             ? [.wallpaper, .aerialCategory, .saverDelay, .saverClock, .saverPreview]
             : [.wallpaper, .saverDelay, .saverClock, .saverPreview]
         case .sounds: [.audioOutput, .feedback]
-        case .apps: [.addApp, .arrangeApps, .topShelfPreferences]
+        case .apps: [.addApp, .arrangeApps]
         case .dedicatedTV: [.dedicatedTV, .preferredDisplay, .launchAtLogin]
         case .power: [.keepMacAwake, .lidOverride, .screenOff, .sleepMac]
         case .about: [.version] + (LocalBuild.isCustom ? [] : [.update, .autoUpdate])
@@ -235,12 +235,11 @@ extension TVController {
         case .phoneRemote: pairing = true
         case .pairingCode: break
         case .controller:
-            showToast(controller == nil ? "Pair a controller in System Settings › Bluetooth" : "Press its Menu button any time to come home")
+            showToast(controller == nil ? "시스템 설정 › Bluetooth에서 컨트롤러를 연결하세요." : "컨트롤러의 메뉴 버튼을 누르면 언제든 홈으로 돌아갑니다.")
         case .addApp:
             settings = nil
             adder = AppAdder()
         case .arrangeApps: openOrganizer()
-        case .topShelfPreferences: openTopShelfPreferences()
         case .playbackCheck: openPlaybackCheck()
         case .dedicatedTV: setDedicatedTVMode(!dedicatedTVMode)
         case .preferredDisplay: stepTVDisplay(1, wrap: true)
@@ -294,20 +293,20 @@ extension TVController {
         switch section {
         case .profiles: return profiles.all.map(\.name).joined(separator: ", ")
         case .remotes:
-            let parts = [phonePaired ? "Phone" : nil, controller?.name].compactMap { $0 }
-            return parts.isEmpty ? "Set up" : parts.joined(separator: " · ")
-        case .watching: return autoSkip ? "Skips intros" : "Intros play"
-        case .screenSaver: return "\(ScreenSaverSettings.wallpaper.title) · \(ScreenSaverSettings.delayMinutes) min"
-        case .sounds: return feedback.enabled ? "On" : "Off"
-        case .apps: return "\(services.filter { $0.kind != .settings && $0.kind != .addApp }.count) on Home"
+            let parts = [phonePaired ? "휴대전화" : nil, controller?.name].compactMap { $0 }
+            return parts.isEmpty ? "연결하기" : parts.joined(separator: " · ")
+        case .watching: return autoSkip ? "오프닝 건너뛰기" : "오프닝 재생"
+        case .screenSaver: return "\(ScreenSaverSettings.wallpaper.title) · \(ScreenSaverSettings.delayMinutes)분"
+        case .sounds: return feedback.enabled ? "켬" : "끔"
+        case .apps: return "홈 화면에 \(services.filter { $0.kind != .settings && $0.kind != .addApp }.count)개"
         case .movies:
             let count = movieLibrary.folders.count
-            return "\(count) folder\(count == 1 ? "" : "s")"
-        case .dedicatedTV: return dedicatedTVMode ? "On · \(preferredTVDisplayName)" : "Off"
-        case .power: return keepMacAwake ? "Keeps Mac awake" : "Sleeps as usual"
+            return "폴더 \(count)개"
+        case .dedicatedTV: return dedicatedTVMode ? "켬 · \(preferredTVDisplayName)" : "끔"
+        case .power: return keepMacAwake ? "Mac을 깨어 있게 유지" : "평소대로 잠자기"
         case .about:
-            if let version = updater.availableVersion { return "Update to \(version)" }
-            return "Version \(Updater.currentVersion)"
+            if let version = updater.availableVersion { return "\(version)으로 업데이트" }
+            return "버전 \(Updater.currentVersion)"
         }
     }
 }
@@ -330,7 +329,7 @@ struct SettingsSheet: View {
         HStack(spacing: 0) {
             hero(panel.section)
                 .frame(width: 780, alignment: .leading)
-                .padding(.leading, 120)
+                .padding(.leading, TVLayout.edge)
             VStack {
                 Spacer(minLength: 0)
                 VStack(alignment: .leading, spacing: 28) {
@@ -341,12 +340,14 @@ struct SettingsSheet: View {
                             sections(panel)
                         }
                     }
+                    .padding(20)
+                    .tvPanel(in: RoundedRectangle(cornerRadius: TVLayout.panelRadius))
                     InputHintsBar(tv: tv, set: settingsHints(panel))
                 }
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.trailing, 120)
+            .padding(.trailing, TVLayout.edge)
             .padding(.leading, 20)
         }
         .foregroundStyle(.white)
@@ -360,24 +361,24 @@ struct SettingsSheet: View {
         let rows = panel.section.rows
         guard rows.indices.contains(panel.row) else { return .list }
         let row = rows[panel.row]
-        var actions: [HintAction] = [.moveVertical("Choose")]
-        let ok = (row == .sleepMac && panel.confirmingSleep) ? "Confirm" : row.okVerb
-        if row.adjustsWithArrows, ok == "Toggle" {
+        var actions: [HintAction] = [.moveVertical("이동")]
+        let ok = (row == .sleepMac && panel.confirmingSleep) ? "확인" : row.okVerb
+        if row.adjustsWithArrows, ok == "전환" {
             // ←→ and OK both flip the switch — show Toggle only.
-            actions.append(.select("Toggle"))
+            actions.append(.select("전환"))
         } else if row.adjustsWithArrows {
             // Multi-value steppers: ←→ is the real control; OK also advances.
-            actions.append(.moveHorizontal("Change"))
+            actions.append(.moveHorizontal("변경"))
         } else if !ok.isEmpty {
             actions.append(.select(ok))
         }
-        actions.append(.back("Close"))
+        actions.append(.back("닫기"))
         return .custom(actions)
     }
 
     private func hero(_ section: SettingsPanel.Section) -> some View {
         VStack(alignment: .leading, spacing: 34) {
-            Text("SETTINGS").font(.tv(.caption2, emphasized: true)).tracking(1.6).opacity(0.5)
+            Text("설정").font(.tv(.caption2, emphasized: true)).foregroundStyle(TVLayout.secondaryText)
             Image(systemName: section.symbol)
                 .font(.system(size: 130, weight: .regular))
                 .contentTransition(.symbolEffect(.replace))
@@ -387,7 +388,7 @@ struct SettingsSheet: View {
                 .overlay(RoundedRectangle(cornerRadius: 72, style: .continuous).strokeBorder(.white.opacity(0.14)))
             VStack(alignment: .leading, spacing: 14) {
                 Text(section.title).font(.tv(.title2, emphasized: true))
-                Text(section.blurb).font(.tv(.caption1)).foregroundStyle(.white.opacity(0.68))
+                Text(section.blurb).font(.tv(.caption1)).foregroundStyle(TVLayout.secondaryText)
                     .lineSpacing(5).frame(maxWidth: 560, alignment: .leading)
             }
             .id(section)
@@ -445,122 +446,120 @@ struct SettingsSheet: View {
     private func content(_ row: SettingsPanel.Row, panel: SettingsPanel) -> some View {
         switch row {
         case .phoneRemote:
-            title("Show QR Code")
+            title("QR 코드 표시")
             chevron
         case .pairingCode:
-            title("Pairing code")
+            title("연결 코드")
             value(tv.remoteToken)
         case .controller:
             if let controller = tv.controller {
                 title(controller.name)
-                value(controller.battery.map { "Battery \(Int($0 * 100))%" } ?? "Connected")
+                value(controller.battery.map { "배터리 \(Int($0 * 100))%" } ?? "연결됨")
                 Image(systemName: controller.batterySymbol).font(.system(size: 26))
             } else {
-                title("Game controller")
-                value("Not connected")
+                title("게임 컨트롤러")
+                value("연결 안 됨")
             }
         case .addApp:
-            title("Add App")
+            title("앱 추가")
             chevron
         case .arrangeApps:
-            title("Arrange Apps")
-            chevron
-        case .topShelfPreferences:
-            title("Top Shelf")
+            title("앱 정리")
             chevron
         case .playbackCheck:
-            title("Playback check")
+            title("재생 점검")
             chevron
         case .dedicatedTV:
-            title(tv.dedicatedTVMode ? "Exit TV mode" : "Enter TV mode")
+            title(tv.dedicatedTVMode ? "TV 모드 종료" : "TV 모드 시작")
             SettingSwitch(on: tv.dedicatedTVMode)
         case .preferredDisplay:
-            title("Preferred display")
+            title("기본 재생 화면")
             stepper(tv.preferredTVDisplayName, active: panel.section.rows[panel.row] == .preferredDisplay)
         case .launchAtLogin:
-            title("Launch at login")
-            if tv.loginNeedsApproval { value("Approval needed") }
+            title("로그인할 때 실행")
+            if tv.loginNeedsApproval { value("권한 허용 필요") }
             else { SettingSwitch(on: tv.launchAtLogin) }
         case .sleepTimer:
-            title("Sleep timer")
+            title("취침 타이머")
             let minutes = tv.sleepMinutesLeft
-            stepper(minutes == 0 ? "Off" : "\(minutes) min left", active: panel.row == 0)
+            stepper(minutes == 0 ? "끔" : "\(minutes)분 남음", active: panel.row == 0)
         case .websitePlayer:
-            title("Website player")
-            stepper(tv.websitePlayerName, active: panel.section.rows[panel.row] == .websitePlayer)
+            title("웹사이트 재생 앱")
+            let player = tv.websitePlayerName
+            stepper(player == "Built-in" ? "내장 플레이어" : player, active: panel.section.rows[panel.row] == .websitePlayer)
         case .autoSkip:
-            title("Skip intros and recaps")
+            title("오프닝 및 지난 이야기 건너뛰기")
             SettingSwitch(on: tv.autoSkip)
         case .autoNext:
-            title("Play next episode automatically")
+            title("다음 회차 자동 재생")
             SettingSwitch(on: tv.autoNext)
         case .saverDelay:
-            title("Start after")
-            stepper("\(ScreenSaverSettings.delayMinutes) minutes", active: tv.settings?.section.rows[panel.row] == .saverDelay)
+            title("시작 대기 시간")
+            stepper("\(ScreenSaverSettings.delayMinutes)분", active: tv.settings?.section.rows[panel.row] == .saverDelay)
         case .saverClock:
-            title("Show clock")
+            title("시계 표시")
             SettingSwitch(on: ScreenSaverSettings.showClock)
         case .saverPreview:
-            title("Preview")
+            title("미리 보기")
             chevron
         case .audioOutput:
-            title("Audio output")
-            value(tv.currentAudioDevice?.name ?? "Speakers")
+            title("오디오 출력")
+            value(tv.currentAudioDevice?.name ?? "스피커")
             chevron
         case .feedback:
-            title("Sounds and haptics")
+            title("사운드 및 햅틱")
             SettingSwitch(on: tv.feedback.enabled)
         case .keepMacAwake:
-            title("Keep Mac awake while Mac TV is open")
+            title("CouchDial 실행 중 Mac을 깨어 있게 유지")
             SettingSwitch(on: tv.keepMacAwake)
         case .lidOverride:
-            title("Stay awake with lid closed")
+            title("덮개를 닫아도 깨어 있기")
             SettingSwitch(on: tv.lidOverride)
         case .screenOff:
-            title("Turn screen off")
+            title("화면 끄기")
         case .sleepMac:
-            title(panel.confirmingSleep ? "Press again to sleep the Mac" : "Sleep Mac")
+            title(panel.confirmingSleep ? "한 번 더 누르면 Mac이 잠자기 상태로 전환됩니다." : "Mac 잠자기")
         case .version:
-            title("Version")
+            title("버전")
             value(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
         case .update:
             switch updater.state {
             case .failed(let message):
-                title("Software update")
+                title("소프트웨어 업데이트")
                 value(message)
             case .available(let version, _):
-                title("Software update")
-                value("Install \(version)")
+                title("소프트웨어 업데이트")
+                value("\(version) 설치")
             case .ready(let version, _):
-                title("Software update")
-                value("Install \(version)")
+                title("소프트웨어 업데이트")
+                value("\(version) 설치")
             case .downloading(let fraction):
-                title("Software update")
-                value("Downloading \(Int(fraction * 100))%")
+                title("소프트웨어 업데이트")
+                value("다운로드 중 \(Int(fraction * 100))%")
             case .installing:
-                title("Software update")
-                value("Installing…")
+                title("소프트웨어 업데이트")
+                value("설치 중…")
             case .checking:
-                title("Software update")
-                value("Checking…")
+                title("소프트웨어 업데이트")
+                value("확인 중…")
             case .upToDate:
-                title("Software update")
-                value("Up to date")
+                title("소프트웨어 업데이트")
+                value("최신 버전")
             case .idle:
-                title("Software update")
-                value("Check now")
+                title("소프트웨어 업데이트")
+                value("지금 확인")
             }
         case .autoUpdate:
-            title("Automatic updates")
+            title("자동 업데이트")
             SettingSwitch(on: updater.automatic)
         case .source:
-            title("Source code")
+            title("소스 코드")
             value("github.com/Arunprakaash/mac-tv")
         case .report:
-            title("Copy diagnostics report")
-            value("Copy")
+            title("진단 보고서 복사")
+            value("복사")
         case .analytics:
-            title("Share anonymous usage")
+            title("익명 사용 정보 공유")
             SettingSwitch(on: Analytics.enabled)
         case .wallpaper, .aerialCategory:
             EmptyView()
@@ -571,7 +570,7 @@ struct SettingsSheet: View {
     private func wallpapers(focused: Bool) -> some View {
         let chosen = ScreenSaverSettings.wallpaper
         return VStack(alignment: .leading, spacing: 12) {
-            Text("WALLPAPER").font(.tv(.caption2, emphasized: true)).tracking(1.4).opacity(0.5).padding(.leading, 6)
+            Text("배경").font(.tv(.caption2, emphasized: true)).tracking(1.4).opacity(0.5).padding(.leading, 6)
             HStack(spacing: 18) {
                 ForEach(ScreenSaverSettings.Wallpaper.allCases, id: \.self) { wallpaper in
                     let selected = wallpaper == chosen
@@ -612,7 +611,7 @@ struct SettingsSheet: View {
     /// Apple's live wallpaper categories, the same as System Settings › Wallpaper; left and right choose one.
     private func aerialCategories(focused: Bool) -> some View {
         let chosen = ScreenSaverSettings.aerialCategory
-        let choices: [(id: String?, name: String)] = [(nil, "Shuffle All")] + Aerials.categories.map { ($0.id, $0.name) }
+        let choices: [(id: String?, name: String)] = [(nil, "모두 섞어서 재생")] + Aerials.categories.map { ($0.id, $0.name) }
         // Two rows of four, so every name fits.
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 4), spacing: 14) {
             ForEach(choices, id: \.name) { choice in
@@ -677,7 +676,7 @@ struct SettingsSheet: View {
             // tvOS focus: a bright white platter with dark text; Sleep Mac turns red to confirm.
             .foregroundStyle(focused && !warning ? .black : .white)
             .background {
-                let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+                let shape = RoundedRectangle(cornerRadius: TVLayout.tileRadius, style: .continuous)
                 if focused {
                     // One platter that glides from row to row as focus moves, like tvOS.
                     shape.fill(warning ? Color(hex: "#FF453A") : .white)

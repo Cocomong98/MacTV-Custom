@@ -53,7 +53,7 @@ final class TVMode {
             self.manualRestoreFullscreen = false
             self.manualDedicatedEntry = false
             self.relocationPending = false
-            self.tv?.showToast("Fullscreen transition did not finish. Try choosing the display again.")
+            self.tv?.showToast("전체 화면 전환이 끝나지 않았습니다. 화면을 다시 선택하세요.")
             self.tv?.objectWillChange.send()
         }
     }
@@ -242,7 +242,7 @@ final class TVMode {
     }
 
     var preferredName: String {
-        guard let preferredID else { return "Automatic" }
+        guard let preferredID else { return "자동" }
         return NSScreen.screens.first(where: { id($0) == preferredID })?.localizedName ?? "Display disconnected"
     }
 
@@ -284,10 +284,10 @@ final class TVMode {
             if value { try SMAppService.mainApp.register() }
             else { try SMAppService.mainApp.unregister() }
             if SMAppService.mainApp.status == .requiresApproval {
-                tv?.showToast("Allow Mac TV in System Settings › General › Login Items")
+                tv?.showToast("시스템 설정 › 일반 › 로그인 항목에서 MacTV를 허용하세요.")
             }
         } catch {
-            tv?.showToast("Could not change login item: \(error.localizedDescription)")
+            tv?.showToast("로그인 항목을 변경하지 못했습니다. \(error.localizedDescription)")
         }
         tv?.objectWillChange.send()
     }
@@ -370,7 +370,7 @@ final class TVMode {
                     self.performManualMove()
                 } else {
                     self.fullscreenMoveRetries = 0
-                    self.tv?.showToast("Could not move fullscreen Mac TV to the selected display.")
+                    self.tv?.showToast("전체 화면을 선택한 디스플레이로 이동하지 못했습니다.")
                 }
                 return
             }
@@ -432,7 +432,7 @@ extension TVController {
     func handlePairing(_ command: RemoteCommand) { tvMode?.handlePairing(command) }
     @discardableResult func selectTVDisplay(id: String) -> Bool { tvMode?.chooseDisplay(id: id) ?? false }
     var dedicatedTVMode: Bool { tvMode?.enabled ?? false }
-    var preferredTVDisplayName: String { tvMode?.preferredName ?? "Automatic" }
+    var preferredTVDisplayName: String { tvMode?.preferredName ?? "자동" }
     var launchAtLogin: Bool { tvMode?.loginEnabled ?? false }
     var loginNeedsApproval: Bool { tvMode?.loginStatus == .requiresApproval }
     func setDedicatedTVMode(_ enabled: Bool) { tvMode?.setEnabled(enabled) }

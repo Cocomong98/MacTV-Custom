@@ -51,7 +51,7 @@ final class IdleCoordinator: ObservableObject {
         sleepTimer?.invalidate()
         guard minutes > 0 else {
             sleepAt = nil
-            tv?.showToast("Sleep timer off")
+            tv?.showToast("취침 타이머 꺼짐")
             return
         }
         sleepAt = Date().addingTimeInterval(TimeInterval(minutes * 60))
@@ -63,6 +63,6 @@ final class IdleCoordinator: ObservableObject {
                 SystemControl.displayOff()
             }
         }
-        tv?.showToast("Sleep timer: \(minutes) minutes")
+        tv?.showToast("취침 타이머 · \(minutes)분")
     }
 }

@@ -12,11 +12,11 @@ struct InputKindTests {
     }
 
     @Test func hintSetsKeepStableVerbs() {
-        #expect(HintSet.list.actions.map(\.label) == ["Choose", "Select", "Close"])
-        #expect(HintSet.listAdjust.actions.map(\.label) == ["Choose", "Change", "Select", "Close"])
-        #expect(HintSet.arrange.actions.map(\.label) == ["Choose app", "Choose action", "Apply", "Close"])
-        #expect(HintSet.info.actions.map(\.label) == ["Close"])
-        #expect(HintSet.pick.actions.map(\.label) == ["Choose", "Select"])
+        #expect(HintSet.list.actions.map(\.label) == ["이동", "선택", "닫기"])
+        #expect(HintSet.listAdjust.actions.map(\.label) == ["이동", "변경", "선택", "닫기"])
+        #expect(HintSet.arrange.actions.map(\.label) == ["앱 선택", "동작 선택", "적용", "닫기"])
+        #expect(HintSet.info.actions.map(\.label) == ["닫기"])
+        #expect(HintSet.pick.actions.map(\.label) == ["이동", "선택"])
     }
 }
 
@@ -28,8 +28,8 @@ struct InputHintBehaviourTests {
 
     @Test func rowsWhereOKDoesNothingHaveNoOKHint() {
         for row in [SettingsPanel.Row.pairingCode, .version, .source] { #expect(row.okVerb.isEmpty) }
-        #expect(SettingsPanel.Row.autoSkip.okVerb == "Toggle")
-        #expect(SettingsPanel.Row.audioOutput.okVerb == "Open")
+        #expect(SettingsPanel.Row.autoSkip.okVerb == "전환")
+        #expect(SettingsPanel.Row.audioOutput.okVerb == "열기")
     }
 
     /// Every command reports its input; only a change of input may redraw the screens watching it.

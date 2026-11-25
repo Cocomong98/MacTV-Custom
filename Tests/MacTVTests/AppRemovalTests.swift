@@ -30,7 +30,7 @@ struct AppRemovalTests {
             tv.handleOrganizer(.selectDown)
             #expect(tv.isHoldingRemove)
             tv.finishRemoveHold()
-            #expect(tv.notices.toast == "Removed Disposable")
+            #expect(tv.notices.toast == "Disposable 제거됨")
             #expect(!tv.library.containsAddedApp(added.id))
             #expect(!tv.arrangedServices.contains { $0.id == added.id })
         }
@@ -121,7 +121,7 @@ struct AppRemovalTests {
             #expect(tv.organizer == nil)
 
             // Bulk restore (Settings / phone remote) is gone: Add App › Suggested toggles them back.
-            #expect(SettingsPanel.Section.apps.rows == [.addApp, .arrangeApps, .topShelfPreferences])
+            #expect(SettingsPanel.Section.apps.rows == [.addApp, .arrangeApps])
             #expect(tv.library.hiddenBuiltInCount == builtIn.count)
 
             tv.adder = AppAdder(tab: .suggested, row: 1, selected: 0)

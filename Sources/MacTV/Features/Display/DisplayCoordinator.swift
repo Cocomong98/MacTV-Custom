@@ -128,7 +128,7 @@ final class DisplayCoordinator: ObservableObject {
                 lidGuard = LidSleep.startGuard()
             } else {
                 preferences.lidOverride = false
-                tv?.showToast("This Mac doesn't allow staying awake with the lid closed")
+                tv?.showToast("이 Mac에서는 덮개를 닫은 채 깨어 있게 유지할 수 없습니다.")
             }
         } else if !lidOverride, lidSleepOff {
             releaseLid()
@@ -160,10 +160,10 @@ final class DisplayCoordinator: ObservableObject {
     /// its battery flat or overheat in a bag.
     private func lidOverrideStopReason() -> String? {
         if !power.onAC, let battery = power.battery, battery < Self.lowBattery {
-            return "Battery low: closing the lid sleeps the Mac again"
+            return "배터리가 부족합니다. 이제 덮개를 닫으면 Mac이 잠자기 상태로 전환됩니다."
         }
         switch ProcessInfo.processInfo.thermalState {
-        case .serious, .critical: return "Mac is hot: closing the lid sleeps the Mac again"
+        case .serious, .critical: return "Mac의 온도가 높습니다. 이제 덮개를 닫으면 Mac이 잠자기 상태로 전환됩니다."
         default: return nil
         }
     }
@@ -180,7 +180,7 @@ final class DisplayCoordinator: ObservableObject {
         let now = ProcessInfo.processInfo.systemUptime
         guard now - lastDisplayWakeRequest >= 0.5 else { return }
         if SystemControl.displayOn() { lastDisplayWakeRequest = now }
-        else { tv?.showToast("The display wake request failed. Try Wake screen again.") }
+        else { tv?.showToast("화면을 깨우지 못했습니다. 화면 깨우기를 다시 눌러 보세요.") }
     }
 
     func holdPlaybackKeepAwake(reason: String) {

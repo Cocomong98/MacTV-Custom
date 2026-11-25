@@ -8,7 +8,7 @@ extension TVController {
 
     @discardableResult
     func setPinned(_ id: String, _ pinned: Bool) -> Bool {
-        guard library.setPinned(id, pinned) else { showToast("Couldn't save favourites. Check available storage and folder permissions."); return false }
+        guard library.setPinned(id, pinned) else { showToast("즐겨찾기를 저장하지 못했습니다. 저장 공간과 폴더 권한을 확인하세요."); return false }
         reloadServices()
         return true
     }
@@ -22,7 +22,7 @@ extension TVController {
 
     @discardableResult
     func moveApp(_ id: String, by offset: Int) -> Bool {
-        guard library.move(id, by: offset) else { showToast("Couldn't save that app's position."); return false }
+        guard library.move(id, by: offset) else { showToast("앱 순서를 저장하지 못했습니다."); return false }
         reloadServices()
         return true
     }
@@ -38,7 +38,7 @@ extension TVController {
         let trimmed = name?.trimmingCharacters(in: .whitespaces) ?? ""
         let app = library.add(name: trimmed.isEmpty ? fallbackName : trimmed, url: url, bundleID: nil)
         reloadServices()
-        showToast("Added \(app.name)")
+        showToast("\(app.name) 추가됨")
         let origin = library
         let preset = Catalog.websiteSuggestions.first {
             guard case .web(let known) = $0.kind else { return false }
@@ -57,24 +57,24 @@ extension TVController {
     func addMacApp(bundleID: String) -> AddedApp? {
         guard let installed = InstalledApps.all.first(where: { $0.bundleID == bundleID }) else { return nil }
         if let existing = services.first(where: { $0.kind == .app(bundleID: bundleID) }) {
-            showToast("\(existing.name) is already on the home screen")
+            showToast("\(existing.name) 앱이 이미 홈 화면에 있습니다.")
             return nil
         }
         let app = library.add(name: installed.name, url: nil, bundleID: bundleID)
         useIcon(IconFinder.icon(forAppAt: installed.path), for: app.id)
-        showToast("Added \(app.name)")
+        showToast("\(app.name) 추가됨")
         return app
     }
 
     /// Adds a Steam game (or Steam Big Picture). Its tile appears at once; Steam's artwork follows.
     func addSteamGame(_ game: SteamLibrary.Game) -> AddedApp? {
         if let existing = services.first(where: { $0.kind == .steam(appID: game.appID) }) {
-            showToast("\(existing.name) is already on the home screen")
+            showToast("\(existing.name) 앱이 이미 홈 화면에 있습니다.")
             return nil
         }
         let app = library.add(name: game.name, url: nil, bundleID: nil, steamID: game.appID)
         reloadServices()
-        showToast("Added \(app.name)")
+        showToast("\(app.name) 추가됨")
         if game == SteamLibrary.bigPicture {
             useIcon(SteamLibrary.appURL.flatMap { IconFinder.icon(forAppAt: $0.path) }, for: app.id)
         } else {
@@ -141,12 +141,12 @@ extension TVController {
     func removeApp(_ id: String) -> Bool {
         guard let service = arrangedServices.first(where: { $0.id == id }) else { return false }
         guard library.remove(id) else {
-            showToast("Couldn't remove \(service.name). Check available storage and folder permissions.")
+            showToast("\(service.name) 앱을 제거하지 못했습니다. 저장 공간과 폴더 권한을 확인하세요.")
             return false
         }
         Icons.forget(id)
         reloadServices()
-        showToast("Removed \(service.name)")
+        showToast("\(service.name) 제거됨")
         return true
     }
 

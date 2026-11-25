@@ -58,11 +58,6 @@ import Testing
             #expect(tv.organizer != nil)
             tv.handleOrganizer(.back)
             #expect(tv.settings?.section == .apps && tv.settings?.row == 1)
-            tv.settings?.row = 2
-            tv.handleSettings(.select)
-            #expect(tv.topShelfPreferences != nil)
-            tv.handleTopShelfPreferences(.back)
-            #expect(tv.settings?.section == .apps)
             #expect(SettingsPanel.Section.watching.rows.contains(.playbackCheck))
             tv.setFocus(.status(.profile))
             #expect(tv.setPinned("spotify", true))

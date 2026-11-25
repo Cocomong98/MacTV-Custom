@@ -10,7 +10,7 @@ struct BravePlaybackView: View {
         ZStack {
             Wallpaper()
             VStack(spacing: 28) {
-                Text(tv.externalBrowserService?.name ?? "Website")
+                Text(tv.externalBrowserService?.name ?? "웹사이트")
                     .font(.tv(.title2, emphasized: true))
                 Text(message)
                     .font(.tv(.body))
@@ -21,7 +21,7 @@ struct BravePlaybackView: View {
                 HStack(spacing: 24) {
                     let buttons = tv.browserButtons
                     ForEach(Array(buttons.enumerated()), id: \.element) { index, button in
-                        ShelfButton(title: button.title(browser: tv.externalBrowser?.name ?? "Browser"), focused: tv.browserFocusIndex == index, glass: false) {
+                        ShelfButton(title: button.title(browser: tv.externalBrowser?.name ?? "브라우저"), focused: tv.browserFocusIndex == index, glass: false) {
                             tv.activateBrowserButton(button)
                         }
                     }
@@ -36,9 +36,9 @@ struct BravePlaybackView: View {
 
     private var message: String {
         if let error = tv.externalBrowserError { return error }
-        let browser = tv.externalBrowser?.name ?? "the browser"
-        if tv.externalBrowserOpening { return "Opening in \(browser)…" }
-        return "Playing in \(browser)."
+        let browser = tv.externalBrowser?.name ?? "브라우저"
+        if tv.externalBrowserOpening { return "\(browser)에서 여는 중…" }
+        return "\(browser)에서 재생 중입니다."
     }
 }
 
@@ -48,9 +48,9 @@ extension TVController {
 
         func title(browser: String) -> String {
             switch self {
-            case .retry: "Try Again"
-            case .returnToBrave: "Return to \(browser)"
-            case .home: "Home"
+            case .retry: "다시 시도"
+            case .returnToBrave: "\(browser)로 돌아가기"
+            case .home: "홈"
             }
         }
     }

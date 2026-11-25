@@ -8,133 +8,103 @@ struct TopShelf: View {
 
     var body: some View {
         let service = tv.shelfService
-        Group {
-            if tv.shelfCount > 0 {
-                AppBanner(tv: tv, service: service, expanded: expanded)
-            }
-        }
-        .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)
-        .id(service.id)
-        .transition(.opacity)
+        AppBanner(tv: tv, movieLibrary: tv.movieLibrary, service: service, expanded: expanded)
+            .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)
+            .id(service.id)
+            .transition(.opacity)
     }
 }
 
-/// The focused app's colours across the screen, with its name top-left. Moving up from the
-/// dock brings up Open. Nothing about what was watched ever shows here.
+/// Compares decoded artwork with the window's backing pixels before it can fill the screen.
+enum ShelfArtwork {
+    static func fillsScreen(_ image: CGSize, viewport: CGSize) -> Bool {
+        image.width >= viewport.width && image.height >= viewport.height
+            && image.width >= image.height * 1.4
+    }
+}
+
 struct AppBanner: View {
     @ObservedObject var tv: TVController
-    @ObservedObject private var feed: TopShelfFeed
-    @ObservedObject private var movieLibrary: MovieLibrary
+    @ObservedObject var movieLibrary: MovieLibrary
     @Environment(\.canvasSize) private var canvas
+    @Environment(\.canvasPixels) private var pixels
     let service: Service
     let expanded: Bool
 
-    init(tv: TVController, service: Service, expanded: Bool) {
-        _tv = ObservedObject(wrappedValue: tv)
-        _feed = ObservedObject(wrappedValue: tv.topShelf)
-        _movieLibrary = ObservedObject(wrappedValue: tv.movieLibrary)
-        self.service = service
-        self.expanded = expanded
-    }
-
-    /// A Steam game's own art: its store screenshot or library hero, else its dock tile. It comes before
-    /// the shows every app without its own get, which would otherwise always cover it. Other apps keep
-    /// their colour wash: their icons are too small to fill the screen.
-    private var steamArt: (id: String, image: NSImage)? {
-        guard case .steam = service.kind else { return nil }
-        if let hero = SteamShelfArt.image(at: tv.library.heroFile(for: service.id)) { return ("\(service.id)-hero", hero) }
-        return Icons.tile(for: service).map { ("\(service.id)-tile", $0) }
-    }
-
-    /// What the Top Shelf shows now: Movies art, a Steam game's own art, or popular shows.
-    private var backdrop: (id: String, name: String, image: NSImage, cover: Bool, appOwned: Bool)? {
-        if case .movies = service.kind {
-            let shelf = movieLibrary.shelf
-            if !shelf.isEmpty {
-                let pick = shelf[feed.turn % shelf.count]
-                // Posters sit on the right like album covers; frames from the film fill the screen.
-                return (pick.path, movieLibrary.movies.first(where: { $0.path == pick.path })?.displayTitle ?? "Movies",
-                        pick.image, pick.image.size.height > pick.image.size.width, false)
-            }
+    private var artwork: (image: NSImage, title: String)? {
+        switch service.kind {
+        case .movies:
+            guard let first = movieLibrary.shelf.first else { return nil }
+            let title = movieLibrary.movies.first(where: { $0.path == first.path })?.displayTitle ?? service.name
+            return (first.image, title)
+        case .steam:
+            return SteamShelfArt.image(at: tv.library.heroFile(for: service.id)).map { ($0, service.name) }
+        default:
+            return nil
         }
-        if let art = steamArt {
-            return (art.id, service.name, art.image, false, true)
-        }
-        if let show = feed.currentShow(for: service), let image = feed.image(for: show.id) {
-            return (String(show.id), show.name, image, show.square, false)
-        }
-        return nil
     }
 
     var body: some View {
-        let show = backdrop
+        let art = artwork
+        let bitmap = art?.image.cgImage(forProposedRect: nil, context: nil, hints: nil)
+        let fullBleed = bitmap.map {
+            ShelfArtwork.fillsScreen(CGSize(width: $0.width, height: $0.height), viewport: pixels)
+        } ?? false
         ZStack(alignment: .topLeading) {
-            // A Steam game's art is the base layer, so it can't be lost under a stale show backdrop.
-            if let show, show.appOwned {
-                AppArtBackdrop(image: show.image)
+            Artwork(accent: service.accent, deep: service.deep)
+
+            if let art, fullBleed {
+                AppArtBackdrop(image: art.image)
                     .frame(width: canvas.width, height: canvas.height)
-                    .clipped()
-                    .id(show.id)
-                    .transition(.opacity)
-            } else {
-                Artwork(accent: service.accent, deep: service.deep)
-                    .frame(width: canvas.width, height: canvas.height)
-                    .clipped()
-            }
-            // Popular shows on this app, cross-fading one to the next, like Apple TV's Top Shelf.
-            if let show, !show.appOwned {
-                if show.cover {
-                    AlbumBackdrop(image: show.image)
-                        .id(show.id)
-                        .transition(.opacity)
-                } else {
-                    // One view for every show: it cross-fades to the next picture itself, in Core Animation.
-                    ShowBackdrop(image: show.image, since: feed.turnStarted)
-                }
-            }
-            // Legibility: a soft top-left wash for the name, a bottom wash for the dock or button.
-            LinearGradient(stops: [.init(color: .black.opacity(expanded ? 0.8 : (show == nil ? 0.55 : 0.18)), location: 0),
-                                   .init(color: .black.opacity(expanded ? 0.4 : 0.15), location: 0.4),
-                                   .init(color: .clear, location: 0.65)],
-                           startPoint: .leading, endPoint: .trailing)
-            LinearGradient(stops: [.init(color: .clear, location: 0.45),
-                                   .init(color: .black.opacity(show == nil ? 0.75 : 0.85), location: 1)],
-                           startPoint: .top, endPoint: .bottom)
-            if show != nil {
-                LinearGradient(colors: [.black.opacity(0.25), .clear], startPoint: .top, endPoint: .center)
+                    .accessibilityHidden(true)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                if show == nil {
-                    // The show's artwork alone carries it; nothing is drawn over it. Without art, the app's name.
-                    Text(service.name)
-                        .font(.tv(.title1, emphasized: true))
+            LinearGradient(colors: [.black.opacity(fullBleed ? 0.88 : 0.46), .clear],
+                           startPoint: .leading, endPoint: .trailing)
+            LinearGradient(stops: [.init(color: .clear, location: 0.42),
+                                   .init(color: .black.opacity(0.78), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+
+            if let art, !fullBleed {
+                Image(nsImage: art.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: min(460, canvas.width * 0.25), height: canvas.height * 0.38)
+                    .clipShape(RoundedRectangle(cornerRadius: TVLayout.tileRadius))
+                    .shadow(color: .black.opacity(0.45), radius: 24, y: 14)
+                    .accessibilityHidden(true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(.top, 140)
+                    .padding(.trailing, TVLayout.edge)
+            }
+
+            VStack(alignment: .leading, spacing: 18) {
+                Text(service.name)
+                    .font(.tv(.title1, emphasized: true))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                if let art, art.title != service.name {
+                    Text(art.title)
+                        .font(.tv(.body))
+                        .foregroundStyle(TVLayout.secondaryText)
                         .lineLimit(2)
-                        .minimumScaleFactor(0.5)
-                        .shadow(color: .black.opacity(0.35), radius: 12, y: 4)
                 }
-                if expanded {
-                    HStack(spacing: 18) {
-                        if feed.searchURL(for: service) != nil {
-                            ShelfButton(title: "Search in \(service.name)", systemImage: "magnifyingglass", focused: tv.focus == .shelf(0)) {
-                                tv.setFocus(.shelf(0)); tv.activateShelf(0)
-                            }
-                        }
-                        let openIndex = feed.searchURL(for: service) == nil ? 0 : 1
-                        ShelfButton(title: "Open \(service.name)", systemImage: "arrow.up.right", focused: tv.focus == .shelf(openIndex)) {
-                            tv.setFocus(.shelf(openIndex)); tv.activateShelf(openIndex)
-                        }
+                if expanded && tv.shelfCount > 0 {
+                    ShelfButton(title: "열기", systemImage: "arrow.up.right", focused: tv.focus == .shelf(0)) {
+                        tv.activateShelf(0)
                     }
-                    .padding(.top, 20)
-                    .tvGlassTransition()
+                    .accessibilityLabel("\(service.name) 열기")
+                    .padding(.top, 16)
+                    .transition(.opacity)
                 }
             }
-            .frame(width: 1100, alignment: .leading)
-            .padding(.leading, 96)
+            .frame(width: min(1060, canvas.width * 0.56), alignment: .leading)
+            .padding(.leading, TVLayout.edge)
             .frame(maxHeight: .infinity, alignment: expanded ? .bottomLeading : .topLeading)
-            .padding(.top, 96)
+            .padding(.top, 148)
             .padding(.bottom, 110)
         }
+        .clipped()
     }
 }
 
@@ -195,8 +165,7 @@ struct ShelfButton: View {
     }
 }
 
-/// A still in the app's own colours, behind the Top Shelf and its cards. Pictures of what you
-/// played aren't shown on the home screen.
+/// A static background in the focused app's own colours.
 struct Artwork: View {
     let accent: String
     let deep: String
@@ -211,5 +180,3 @@ struct Artwork: View {
         }
     }
 }
-
-// MARK: Settings › Remote

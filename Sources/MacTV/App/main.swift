@@ -132,7 +132,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let flag = CommandLine.arguments.firstIndex(of: "--export-tiles"), flag + 1 < CommandLine.arguments.count {
             let folder = URL(fileURLWithPath: CommandLine.arguments[flag + 1])
             for service in AppLibrary().services() {
-                guard let tile = Icons.tile(for: service), let tiff = tile.tiffRepresentation,
+                let tile = service.tileSymbol == nil ? Icons.tile(for: service)
+                    : ImageRenderer(content: AppTile(service: service, focused: false, tilt: .zero)).nsImage
+                guard let tile, let tiff = tile.tiffRepresentation,
                       let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) else { continue }
                 try? png.write(to: folder.appendingPathComponent("\(service.id).png"))
             }
@@ -223,7 +225,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             contentRect: NSRect(x: 0, y: 0, width: 1280, height: 720),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered, defer: false)
-        window.title = "Mac TV"
+        window.title = LocalBuild.displayName
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.backgroundColor = .black
@@ -244,11 +246,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         installLauncherKeys()
         tv.startPowerManagement()
         tv.startControllers()
-        tv.topShelf.start()
         tv.ensureSteamHeroes()
-        Task { [weak tv] in
-            await Icons.fetchWebsiteIcons { tv?.objectWillChange.send() }
-        }
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(displaysSlept),
             name: NSWorkspace.screensDidSleepNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(macWoke),
@@ -266,7 +264,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Usage analytics sends nothing unless the user has said yes (Analytics.swift).
         Analytics.start(context: tv.analyticsContext)
         tv.updater.onAvailable = { [weak self] version in
-            self?.tv.showToast("Mac TV \(version) is available in Settings › About")
+            self?.tv.showToast("설정 › 앱 정보에서 MacTV \(version)으로 업데이트할 수 있습니다.")
         }
         tv.updater.isIdle = { [weak self] in self?.tv.idleForUpdate ?? false }
         tv.updater.start()
@@ -364,7 +362,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self, event.window === window else { return event }
             if tv.noteActivity() { return nil }
             guard tv.mode == .launcher, !tv.pairing, tv.settings == nil, tv.adder == nil,
-                  tv.organizer == nil, tv.playbackCheck == nil, tv.topShelfPreferences == nil,
+                  tv.organizer == nil, tv.playbackCheck == nil,
                   tv.setup == nil, tv.profilePicker == nil, tv.controlCenter == nil else { return event }
 
             tv.suppressHover = true
@@ -467,39 +465,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let main = NSMenu()
 
         let app = NSMenu()
-        app.addItem(withTitle: "Home", action: #selector(goHome(_:)), keyEquivalent: "H")
+        app.addItem(withTitle: "홈", action: #selector(goHome(_:)), keyEquivalent: "H")
         app.addItem(.separator())
-        app.addItem(withTitle: "Hide Mac TV", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        app.addItem(withTitle: "Quit Mac TV", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        main.addItem(submenu: app, title: "Mac TV")
+        app.addItem(withTitle: "\(LocalBuild.displayName) 가리기", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        app.addItem(withTitle: "\(LocalBuild.displayName) 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        main.addItem(submenu: app, title: LocalBuild.displayName)
 
         // Standard editing so ⌘V works in sign-in fields.
-        let edit = NSMenu(title: "Edit")
-        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
-        edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+        let edit = NSMenu(title: "편집")
+        edit.addItem(withTitle: "실행 취소", action: Selector(("undo:")), keyEquivalent: "z")
+        edit.addItem(withTitle: "다시 실행", action: Selector(("redo:")), keyEquivalent: "Z")
         edit.addItem(.separator())
-        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
-        main.addItem(submenu: edit, title: "Edit")
+        edit.addItem(withTitle: "오려두기", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "복사", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "붙여넣기", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "모두 선택", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        main.addItem(submenu: edit, title: "편집")
 
-        let view = NSMenu(title: "View")
-        let fullScreen = view.addItem(withTitle: "Enter Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
+        let view = NSMenu(title: "보기")
+        let fullScreen = view.addItem(withTitle: "전체 화면 시작", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
         fullScreen.keyEquivalentModifierMask = [.control, .command]
-        view.addItem(withTitle: "Reload Page", action: #selector(reloadPage(_:)), keyEquivalent: "r")
-        main.addItem(submenu: view, title: "View")
+        view.addItem(withTitle: "페이지 새로고침", action: #selector(reloadPage(_:)), keyEquivalent: "r")
+        main.addItem(submenu: view, title: "보기")
 
-        let window = NSMenu(title: "Window")
-        window.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
-        window.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
-        main.addItem(submenu: window, title: "Window")
+        let window = NSMenu(title: "윈도우")
+        window.addItem(withTitle: "최소화", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        window.addItem(withTitle: "확대/축소", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
+        main.addItem(submenu: window, title: "윈도우")
         NSApp.windowsMenu = window
 
-        let help = NSMenu(title: "Help")
-        help.addItem(withTitle: "Copy Diagnostics Report", action: #selector(copyReport(_:)), keyEquivalent: "")
-        help.addItem(withTitle: "Report a Bug…", action: #selector(reportBug(_:)), keyEquivalent: "")
-        main.addItem(submenu: help, title: "Help")
+        let help = NSMenu(title: "도움말")
+        help.addItem(withTitle: "진단 보고서 복사", action: #selector(copyReport(_:)), keyEquivalent: "")
+        help.addItem(withTitle: "오류 신고…", action: #selector(reportBug(_:)), keyEquivalent: "")
+        main.addItem(submenu: help, title: "도움말")
         NSApp.helpMenu = help
 
         return main
