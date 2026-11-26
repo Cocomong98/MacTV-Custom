@@ -1,12 +1,60 @@
-# CouchDial
+<p align="center">
+  <img src="Assets/CustomAppIcon.png" width="112" alt="CouchDial 앱 아이콘">
+</p>
 
-맥북을 TV처럼 쓰고 아이폰으로 탐색과 재생을 조작하는 macOS 앱입니다.
+<h1 align="center">CouchDial</h1>
 
-Arunprakaash가 만든 [Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22)를 기반으로 한다. 원본 커밋 `50c9fd90f2f9f373cfdb5aed1a6adac15b369051`과 Git 이력, [MIT 라이선스](LICENSE)를 보존한다.
+<p align="center"><strong>밖에서는 노트북, 집에서는 TV.</strong></p>
 
-## 다운로드
+CouchDial은 Mac에서 영상을 보고 아이폰을 리모컨으로 쓰는 오픈소스 macOS 앱입니다. 맥북 화면으로 바로 보거나 Mac을 모니터나 TV에 연결해 큰 화면으로 볼 수 있습니다.
 
-[GitHub Releases](https://github.com/Cocomong98/MacTV-Custom/releases)에서 DMG를 받아 열고 앱을 **Applications**로 끌어 놓습니다. 새 배포 파일 이름은 `CouchDial-<버전>.dmg`입니다. 기존 Cask 업그레이드를 위해 앱 번들 파일명은 `MacTV Custom.app`을 사용합니다. `0.2.0`부터 같은 자체 서명 인증서로 배포합니다. 최초 실행에서 macOS의 확인 화면이 나오면 파일 출처와 체크섬을 확인한 뒤 Apple 안내를 따르세요. [Apple의 앱 열기 안내](https://support.apple.com/ko-kr/102445)
+[Mac용 다운로드](https://github.com/Cocomong98/MacTV-Custom/releases/latest) · [변경 기록](CHANGELOG.md)
+
+## 왜 만들었나요?
+
+자취방에 맥북과 모니터가 있어도, 영상을 바꾸거나 보고 싶은 구간으로 갈 때마다 맥북까지 가야 하면 큰 화면을 두고도 아이폰으로 보게 됩니다. 이미 가진 장비로 영상을 보고, 소파에서 아이폰으로 검색하고 재생할 수 있도록 CouchDial을 만들었습니다.
+
+- **매일 쓰는 맥북으로** 밖에서는 노트북으로 쓰고, 집에 돌아오면 맥북 자체 화면이나 연결한 모니터로 영상을 볼 수 있습니다.
+- **쉬고 있는 Mac으로** 안 쓰는 맥북이나 Mac mini를 영상 재생용으로 쓰고, 아이폰으로 조작할 수 있습니다.
+
+## 앱 화면
+
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Mac 홈 화면</th>
+      <th scope="col">아이폰 리모컨</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="docs/screenshots/couchdial-home.jpg" width="620" alt="YouTube, Netflix, 티빙, 웨이브, 왓챠, 라프텔이 보이는 CouchDial 홈 화면"></td>
+      <td><img src="docs/screenshots/couchdial-remote.png" width="162" alt="방향키, 재생과 음량, TV에서 입력 버튼이 보이는 CouchDial 웹 리모컨 예시"></td>
+    </tr>
+  </tbody>
+</table>
+
+## 소파에서 할 수 있는 일
+
+- **QR로 연결하기** · 같은 Wi-Fi에서 Mac에 표시된 QR을 스캔하면 아이폰 Safari에서 리모컨이 열립니다.
+- **아이폰 키보드로 검색하기** · Mac에서 검색창을 선택하고 리모컨의 **TV에서 입력**을 누르면 한글 검색어를 아이폰에서 보낼 수 있습니다.
+- **보고 싶은 구간으로 이동하기** · 내장 플레이어에서 탐색할 수 있는 YouTube 영상에는 **15초 뒤로·앞으로** 버튼이 표시됩니다.
+- **화면과 소리 조절하기** · 아이폰에서 전체화면으로 바꾸고 내장 스피커 음량을 조절할 수 있습니다. 밝기 조절을 지원하는 화면은 각각 조절할 수 있어서, 외장 모니터로 볼 때 맥북 화면의 밝기만 낮출 수 있습니다.
+- **다른 서비스를 열었다가 이어보기** · 내장 웹 플레이어에서 홈으로 돌아오면 재생이 멈춥니다. CouchDial을 실행 중인 동안 최근 최대 세 서비스의 화면과 재생 위치를 유지합니다.
+
+홈에서 YouTube, 넷플릭스, 웨이브, 왓챠, 티빙, 라프텔 등을 열 수 있습니다. 각 서비스의 공식 웹사이트에서 기존 계정으로 로그인합니다.
+
+## 설치하고 연결하기
+
+**macOS 14 Sonoma 이상**을 사용하는 Apple Silicon·Intel Mac을 지원합니다.
+
+1. 최신 릴리스에서 `CouchDial-<버전>.dmg`를 다운로드합니다. [GitHub Releases](https://github.com/Cocomong98/MacTV-Custom/releases/latest)
+2. DMG를 열고 앱을 **응용 프로그램** 폴더로 옮깁니다. 번들 파일명은 `MacTV Custom.app`이고, 실행하면 **CouchDial**로 표시됩니다.
+3. Mac과 아이폰을 같은 Wi-Fi에 연결합니다. CouchDial이 로컬 네트워크 접근을 요청하면 허용하고, 화면의 QR을 아이폰으로 스캔합니다.
+
+첫 실행에 macOS 확인 화면이 나오면 다운로드 출처와 릴리스에 함께 게시된 SHA‑256 체크섬을 확인한 뒤 Apple의 안내를 따르세요. [Mac에서 앱을 안전하게 열기](https://support.apple.com/ko-kr/102445)
+
+외장 화면의 밝기 조절은 모니터와 연결 방식에 따라 달라지며, 일부 환경에서는 BetterDisplay가 필요합니다. [화면 및 사운드 명세](docs/UI_SPEC.md#아이폰-리모컨)
 
 ### Homebrew 설치
 
@@ -15,80 +63,28 @@ brew tap Cocomong98/mactv https://github.com/Cocomong98/MacTV-Custom.git
 brew install --cask Cocomong98/mactv/mactv-custom
 ```
 
-기존 Homebrew 사용자는 `brew update` 후 `brew upgrade --cask Cocomong98/mactv/mactv-custom`으로 0.4.0을 설치할 수 있습니다.
+### 업데이트
 
-### 앱에서 업데이트
+CouchDial 0.4.0부터 **설정 → 앱 정보 → 업데이트 확인**에서 새 버전을 확인하고 **업데이트 및 재시작**으로 설치할 수 있습니다. 0.3.1 이하에서는 DMG 또는 Homebrew로 먼저 업데이트하세요.
 
-0.4.0부터 **설정 → 앱 정보 → 업데이트 확인**에서 새 정식 버전을 확인합니다. 변경 내용을 본 뒤 **업데이트 및 재시작**을 누르면 설치까지 진행합니다. 0.3.1 이하에서는 처음 한 번 Homebrew 또는 DMG로 0.4.0을 설치하세요.
+```bash
+brew update
+brew upgrade --cask Cocomong98/mactv/mactv-custom
+```
 
-## 시작하기
+## 개발
 
-1. `AGENTS.md`와 [로드맵](docs/ROADMAP.md)에서 현재 단계와 미검증 항목을 확인한다.
-2. 기준 버전은 원본 `v0.22` (`50c9fd90f2f9f373cfdb5aed1a6adac15b369051`)다. 공식 빌드와 테스트 절차는 [원본 기여 가이드](CONTRIBUTING.md)를 따른다.
-3. 프로젝트 루트에서 `./build.sh --release`으로 `build/MacTV Custom.app`을 빌드한다. `open "build/MacTV Custom.app"`으로 실행한다.
+소스에서 공개판을 빌드하고 검증하려면 저장소 루트에서 실행합니다.
 
-## 로컬 설치와 복구
+```bash
+./build.sh --release
+open "build/MacTV Custom.app"
+bash scripts/test-custom.sh
+```
 
-- Finder에서 `build/MacTV Custom.app`을 그대로 열거나 응용 프로그램 폴더에 `MacTV Custom.app` 이름으로 복사한다. 설정과 페어링은 `~/Library/Application Support/MacTV Custom`과 별도 앱 환경설정에 저장된다. 최초 실행 때 화면에 표시된 QR로 아이폰을 연결한다.
-- 초기 설정에서 필요한 OTT는 새로 로그인한다. 내장 플레이어는 커스텀 앱의 웹 세션을 사용한다. 외부 브라우저를 선택한 사이트는 그 브라우저의 프로필을 사용한다. LG의 BetterDisplay 밝기 경로에는 설치된 BetterDisplay가 실행 중이어야 한다.
-- 로컬 네트워크 접근을 요청하면 아이폰 웹 리모컨에 필요한 권한을 허용한다. 외부 Chrome·IINA 창 배치와 조작에 필요한 경우 macOS 개인정보 보호 및 보안에서 **CouchDial**에 손쉬운 사용 권한을 부여한다. 임시 서명으로 다시 빌드하면 macOS가 권한을 다시 요청할 수 있다. 같은 로컬 서명으로 반복 빌드하려면 원본 스크립트 `./scripts/make-signing-cert.sh 'MacTV Custom Local Signing'`을 한 번 실행한다. 키체인에 로컬 서명 인증서를 만들며 유료 Apple Developer 계정은 필요 없다.
-- 업데이트할 때는 커스텀 앱을 종료하고 `./build.sh --release`으로 다시 빌드한다. 응용 프로그램 폴더에 복사해 쓰는 경우에만 그곳의 `MacTV Custom.app`을 새 빌드로 교체한다. 문제 발생 시 커스텀 앱을 종료한 뒤 기존 `/Applications/Mac TV.app`을 열면 기존 설정과 페어링을 사용할 수 있다. 원본 소스는 형제 폴더 `MacTV-Upstream`의 `v0.22`에 보존했다.
+- [기여 가이드](CONTRIBUTING.md) · [개발 로드맵](docs/ROADMAP.md) · [테스트 계획](docs/TEST_PLAN.md) · [브랜치와 배포](docs/RELEASING.md)
+- 버그나 사용 중 겪은 문제는 [CouchDial 이슈](https://github.com/Cocomong98/MacTV-Custom/issues)에 남겨 주세요.
 
-## 문서 찾기
+## 원본 프로젝트와 라이선스
 
-| 문서 | 내용 |
-| --- | --- |
-| [AGENTS.md](AGENTS.md) | 개발 원칙과 문서 참조 기준 |
-| [환경](docs/ENVIRONMENT.md) | 장비, 연결, 버전과 권한 확인 항목 |
-| [요구사항](docs/REQUIREMENTS.md) | R01–R16과 범위 |
-| [아키텍처](docs/ARCHITECTURE.md) | 원본 조사 지점, 기능별 구현 후보와 제약 |
-| [UI 명세](docs/UI_SPEC.md) | 홈, 아이폰 리모컨, 측면 OSD |
-| [로드맵](docs/ROADMAP.md) | 원본 확보, 기준선 빌드, 구현 순서와 현황 |
-| [테스트 계획](docs/TEST_PLAN.md) | 요구사항별 검증과 회귀 기준 |
-| [결정 기록](docs/DECISIONS.md) | 확정된 선택과 기술 검토 항목 |
-| [브랜치와 배포](docs/RELEASING.md) | 기능 브랜치, SemVer, DMG 게시 |
-
-## 원본 프로젝트 안내
-
-<p align="center">Turn a Mac into an Apple TV-style box: a tvOS-style home screen, your streaming apps in their official web players, and your phone as the remote.</p>
-
-원본 버전의 화면 예시는 [Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22)에서 확인할 수 있습니다.
-
-### Install
-
-1. Download `MacTV-<version>.dmg` from the [upstream releases](https://github.com/Arunprakaash/mac-tv/releases), open it, and drag **Mac TV** to Applications.
-2. The first time you open it, macOS says it can't check the app, because it isn't notarized by Apple. Open **System Settings › Privacy & Security**, scroll down and click **Open Anyway**.
-3. When macOS asks whether Mac TV may accept incoming network connections, choose **Allow**, so your phone can reach the remote.
-4. A short setup follows: choose your apps, scan a QR code to use your phone as the remote, and you're done.
-
-Requires macOS 14 or later, on an Apple silicon or Intel Mac.
-
-### What it does
-
-- **Apple TV's home screen:** a Top Shelf of the latest shows on each app, a dock of app tiles and the full grid below, in Liquid Glass.
-- **Your streaming apps:** Netflix, YouTube, Prime Video, JioHotstar, Apple TV, Spotify and YouTube Music in their official web players, with DRM. Add any website, Mac app or Steam game as a tile.
-- **Phone remote:** scan a QR code, no app to install. Clickpad, touchpad, typing, volume and haptics; wake the screen, choose the display, or open a website. Works away from home over Tailscale.
-- **Game controllers:** PlayStation, Xbox, Switch Pro and other controllers drive it like an Apple TV controller.
-- **Movies:** plays your own video files, including MKV, with subtitles and Continue Watching, from the Mac, drives, a NAS (network shares stay connected) or a Jellyfin server you sign in to. Browse them from your phone.
-- **Watching:** skips intros and recaps, plays the next episode, and has a sleep timer.
-- **Screen saver:** Apple's live aerial wallpapers, show art, your photos, or drifting colour, with a clock.
-- **Profiles:** each person gets their own apps and sign-ins.
-- **Power:** keeps the Mac awake for the remote, and can stay awake with the lid closed.
-- **Updates:** installs new versions by itself while nothing is playing, or when you choose in Settings › About.
-- **Your browser (optional):** open websites in Brave, Chrome, Edge or another Chromium browser instead of the built-in player, with that browser's sign-ins and extensions. Close its window and you're back on Mac TV.
-
-### Privacy
-
-Mac TV has no account and no servers of its own, and never records what you watch. It asks once whether to share anonymous usage (which features you use) through [TelemetryDeck](https://telemetrydeck.com), and sends nothing unless you say yes. Every event is in [`Analytics.swift`](Sources/MacTV/Core/Analytics.swift). Details: [privacy policy](https://arunprakaash.github.io/mac-tv/privacy.html).
-
-### Contributing
-
-For the original project’s source, tests and pull requests, see [upstream CONTRIBUTING.md](https://github.com/Arunprakaash/mac-tv/blob/v0.22/CONTRIBUTING.md). For its security policy, see [upstream SECURITY.md](https://github.com/Arunprakaash/mac-tv/blob/v0.22/SECURITY.md).
-
-### Who makes it
-
-Mac TV is made by Arunprakaash ([LinkedIn](https://www.linkedin.com/in/Arunprakaash)). Questions and bug reports go to [GitHub issues](https://github.com/Arunprakaash/mac-tv/issues).
-
-### License
-
-MIT. See [LICENSE](LICENSE). "Mac" is an Apple trademark. This is a personal project, not affiliated with Apple, Netflix, Google, Amazon, JioStar, Spotify or Brave. App icons and service names belong to their owners and aren't covered by the license.
+CouchDial은 Arunprakaash가 만든 Mac TV v0.22에서 출발했습니다. 원본 커밋 `50c9fd90f2f9f373cfdb5aed1a6adac15b369051`과 Git 이력을 보존하며, 소스는 MIT 라이선스로 공개합니다. [원본 Mac TV v0.22](https://github.com/Arunprakaash/mac-tv/tree/v0.22) · [MIT 라이선스](LICENSE)
